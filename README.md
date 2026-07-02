@@ -6,7 +6,7 @@ Magpie is a boilerplate for hobby product-search sites: one Python file of engin
 HTML file of UI, zero dependencies. It ships configured as
 [**DollScout**](https://www.dollscout.com), a live collector-Barbie finder, so cloning
 this template gives you a complete working demo. Point it at your own obsession
-(retro games, vinyl, fountain pens, trading cards) by editing one config file: see
+(vinyl, fountain pens, trading cards, diecast cars) by editing one config file: see
 [RETARGETING.md](RETARGETING.md).
 
 Like the bird, it hunts shiny things across the whole landscape and brings them back
