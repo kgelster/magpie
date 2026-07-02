@@ -14,6 +14,13 @@ to one nest.
 
 **Live demo:** [dollscout.com](https://www.dollscout.com)
 
+![Search results with taxonomy chips, price/stock filters, and sort](screenshots/search.png)
+
+<p>
+  <img src="screenshots/quick-view.png" alt="Quick-view modal with image gallery, description, and buy-now link" width="70%">
+  <img src="screenshots/mobile-filters.png" alt="Mobile filter bottom-sheet" width="24%">
+</p>
+
 ## Why this exists
 
 Shopify's [Universal Commerce Protocol](https://www.shopify.com/ucp) (UCP) exposes a
