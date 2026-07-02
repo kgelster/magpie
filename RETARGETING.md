@@ -22,6 +22,7 @@ Every constant, with its DollScout value and what to change it to:
 | `POPULAR_QUERIES` | 10 Barbie searches | Your niche's popular searches. Drives the sitemap, the suggestion dropdown seeds, and boot-time cache warming |
 | `DEEP_LINK_TITLE` / `DEEP_LINK_DESC` | Barbie phrasing | `<title>`/description templates for `/?q=` deep-links. Keep the `{q}` placeholder |
 | `DEFAULT_META_TITLE` | DollScout og:title | See the coupling trap below |
+| `NOT_FOUND_HEADING` / `NOT_FOUND_BODY` / `NOT_FOUND_CTA` | Hunt-themed 404 copy | Your niche's 404 page copy (app.py wraps these in a styled page) |
 | `TAXONOMY` | Barbie chip vocabulary | Your niche's filter chips: groups of `{"label", "q"}` where `q` is appended to the query. Dict order = display order |
 
 ## 2. `index.html`: six fenced brand blocks
@@ -30,13 +31,20 @@ Search the file for `BRAND BLOCK`. Each region is paired with a closing fence:
 
 1. **SEO head**: `<title>`, meta description, OG/Twitter tags, JSON-LD (site name,
    description, publisher organization). Replace every DollScout/Barbie/Ethercycle value.
-2. **Welcome mat + hero**: wordmark (`Doll<em>Scout</em>`), tagline, search placeholder.
+2. **Welcome mat + hero**: wordmark (`Doll<em>Scout</em>`), display headline (with the
+   `.scribble` underline span), sub line, handwritten `.scout-note`, search placeholder,
+   and the marquee `.ticker` one-liners (rewrite all six for your niche's in-jokes).
+   The try-bar chips build themselves from `POPULAR` (block 6); only `LABEL_SURPRISE`
+   (block 5) needs wording.
 3. **About / What & Why**: the project story and trademark disclaimer. Rewrite for
    your niche and your operator.
 4. **Footer**: wordmark, tagline, operator copyright, trademark note.
 5. **JS brand constants**: `NOUN`/`NOUNS` (the item word used in every count, wishlist
-   message, and aria-label: "doll"/"dolls" → "record"/"records") and `WISHLIST_KEY`
-   (namespace it to your site so localStorage doesn't collide).
+   message, and aria-label: "doll"/"dolls" → "record"/"records"), the `MSG_*`/`LABEL_*`/
+   `TITLE_*` voice strings (empty states, loading line, card links — DollScout's are
+   she/her and hunt-flavored; rewrite for your niche's vocabulary), the `console.log`
+   easter egg, and `WISHLIST_KEY` (namespace it to your site so localStorage doesn't
+   collide).
 6. **Suggestion + placeholder copy**: `POPULAR` (labels must match `TAXONOMY` labels or
    chips in `domain.py`), `PH_EXAMPLES` (typewriter placeholder examples), `BASE_PH`.
 

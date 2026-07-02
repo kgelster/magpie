@@ -89,6 +89,7 @@ browser (index.html) → /api/search → app.py builds UCP input
 | `app.py` | The engine: HTTP server, cache, rate limiting, SEO routes, security headers, UCP subprocess glue. Domain-agnostic; you should never need to edit it. |
 | `domain.py` | **The entire domain configuration.** Brand terms, query anchor, taxonomy chips, popular queries, site origin, meta templates. Retargeting starts here. |
 | `index.html` | Single-file vanilla-JS UI. Brand copy is isolated in six fenced `BRAND BLOCK` regions. |
+| `DESIGN.md` | Design system for the 2026-07 riso rebrand: tokens (with measured contrast), component rules, a11y acceptance criteria, QA checklist. Read before any visual change. |
 | `privacy.html`, `terms.html` | DollScout's real legal pages. **Replace with your own** (see RETARGETING.md). |
 | `og-image.png` | 1200×630 social share card. Replace with your own. |
 | `Dockerfile`, `fly.toml` | Fly.io deployment (Node for the CLI + Python for the app in one image). |

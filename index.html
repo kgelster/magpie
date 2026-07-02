@@ -10,7 +10,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='88'%3E💖%3C/text%3E%3C/svg%3E">
 <meta name="description" content="DollScout: a search tool for Barbie doll collectors. Find collector Barbie dolls across thousands of Shopify shops in one place. Filter by line, designer, and era to track down the doll you're hunting.">
 <meta name="robots" content="index, follow">
-<meta name="theme-color" content="#f4edef">
+<meta name="theme-color" content="#EDE2E3">
 <link rel="canonical" href="https://www.dollscout.com/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="DollScout">
@@ -76,21 +76,29 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.shopify.com">
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Dancing+Script:wght@600;700&family=Pacifico&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500;1,9..144,900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Overpass+Mono:wght@400;500;700&family=Caveat:wght@700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --porcelain: #f4edef;
-    --paper:     #ffffff;
-    --ink:       #1a1013;
-    --pink:      #e0218a;   /* large display + decorative only */
-    --pink-deep: #bc1573;   /* any pink that is text or sits behind white (WCAG-safe) */
-    --mauve:     #7a6570;   /* secondary text (>=4.5) */
-    --bronze:    #7a5b24;   /* gold-flavoured TEXT: eyebrows, stars (>=4.5) */
-    --gold:      #b0863c;   /* hairlines / ticks only — never text */
-    --line:      #e4d5db;
-    --serif: "Fraunces", Georgia, serif;
-    --sans: "Archivo", system-ui, sans-serif;
-    --script: "Dancing Script", "Fraunces", cursive;
+    /* Riso rebrand tokens, mapped onto the legacy variable slots so existing rules
+       retheme in place. Spec name → legacy var: paper→--porcelain, surface-raised→--paper,
+       primary→--pink, secondary→--pink-deep/--bronze, secondary-tint→--gold/--tint. */
+    --porcelain: #EDE2E3;   /* paper: universal page background */
+    --paper:     #ffffff;   /* surface-raised: cards, inputs, modals only */
+    --ink:       #111827;   /* body text, icons, focus rings (14:1 on paper) */
+    --ink-soft:  #4B4A55;   /* muted text (6.9:1 on paper, AA) */
+    --pink:      #F237A1;   /* primary: interaction FILLS only — never text, never small icons */
+    --pink-deep: #2C40A7;   /* secondary: headings + link text (6.9:1 on paper; legacy slot was pink text) */
+    --mauve:     var(--ink-soft);
+    --bronze:    #2C40A7;   /* secondary (legacy slot: eyebrows, stars, mlt links) */
+    --gold:      #6DC6EC;   /* secondary-tint: DECORATIVE only (1.5:1) — shadows, hairlines */
+    --tint:      #6DC6EC;
+    --line:      rgba(17,24,39,.15);
+    --paper-veil: rgba(237,226,227,.55);  /* paper at 55%: hero photo overlay wash */
+    --success: #16A34A; --warning: #D97706; --danger: #DC2626;  /* status fills; ink text on top */
+    --serif: "Space Grotesk", system-ui, sans-serif;
+    --sans: "Space Grotesk", system-ui, sans-serif;
+    --script: "Space Grotesk", system-ui, sans-serif;
+    --mono: "Overpass Mono", ui-monospace, "SF Mono", monospace;
   }
   * { box-sizing: border-box; }
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -246,6 +254,10 @@
     transition: transform .15s ease, color .15s ease; }
   .wish:hover { color: var(--pink-deep); transform: scale(1.12); }
   .wish.on { color: var(--pink); background: #fff; }
+  /* one heartbeat when a doll is saved (class re-applied per save in toggleWish) */
+  .wish.beat { animation: heartbeat .45s ease; }
+  @keyframes heartbeat { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.35); }
+    55% { transform: scale(.95); } 75% { transform: scale(1.15); } }
 
   /* Buy-now CTA on each card photo (appears on hover; always shown on touch) */
   .buyover { position: absolute; bottom: 8px; right: 8px; z-index: 3; height: 32px; padding: 0 16px;
@@ -489,9 +501,115 @@
     .card, .card-img img, .card-img::after, .wish, .buyover { transition: none; }
     .buyover { opacity: 1; transform: none; }
     .card-img img { opacity: 1; }
-    .count .spinner, .morespin .spinner, .sk .card-img, .sk-line { animation: none; }
+    .count .spinner, .morespin .spinner, .sk .card-img, .sk-line, .wish.beat { animation: none; }
     html { scroll-behavior: auto; }
   }
+
+  /* ═══ RISO RETHEME OVERRIDES (2026-07 rebrand) ═══
+     Component corrections the token remap can't express. Rules follow the design
+     spec: pink = interaction fills with ink text; blue text = secondary only;
+     tint = decoration only; focus = 2px ink. */
+
+  /* label-caps surfaces move to Overpass Mono, 700 for legibility at small caps sizes */
+  .welcomemat, .eyebrow, .go, .more, .facet-btn, .pill, .clearall, .sortsel, .chip,
+  .count, .card .house, .modal-info .house, .buyover, .sheet-apply, .sheet-title,
+  .mfilters, .likebar .x, .afpill, .card .links, .modal-actions, .suggest .s-head,
+  .suggest .s-item .s-grp, .price-row button, .filterbar .lead {
+    font-family: var(--mono); font-weight: 700; }
+
+  /* radius: md 8px (cards, modals, buttons), sm 4px (inputs, tags) */
+  .card, .modal-card, .facet-panel, .suggest, .go, .more, .sheet-apply { border-radius: 8px; }
+  .card { overflow: hidden; }
+  .search-wrap input, .price-row input, .price-row button, .chip, .facet-btn, .pill,
+  .clearall, .sortsel, .afpill, .likebar .x, .modal-actions .wishbtn { border-radius: 4px; }
+
+  /* signature print-shadow: readable secondary layer, tint offset behind, no blur */
+  .masthead h1, .foot .brand-name { color: var(--pink-deep); text-shadow: 3px 3px 0 var(--tint); }
+  .masthead h1 em, .foot .brand-name em { color: inherit; }
+
+  /* hero: solid primary band (Kurt 07-02, supersedes the blurred photo) — the one
+     sanctioned decorative use of pink; the white card carries all reading contrast */
+  .hero { background: var(--pink); }
+  .masthead { background: var(--paper); border: 1px solid var(--ink);
+    box-shadow: 6px 6px 0 var(--tint); -webkit-backdrop-filter: none; backdrop-filter: none;
+    border-radius: 8px; }
+  /* hero = the search bar: full-width card, compact wordmark, oversized input (Kurt 07-02) */
+  .masthead { max-width: none; padding: 24px 32px 32px; }
+  .masthead h1 { font-size: 32px; margin: 0; text-shadow: 2px 2px 0 var(--tint); }
+  .masthead .sub { font-size: 16px; max-width: none; margin: 4px 0 16px; }
+  .searchbar { max-width: none; gap: 12px; }
+  .search-wrap input { font-size: 20px; padding: 16px 56px 16px 16px; }
+  .clearx { right: 48px; font-size: 24px; }
+  .go { padding: 0 32px; font-size: 16px; border: 1px solid var(--ink); }
+
+  /* welcome mat: ink strip (pink fills are for interaction only) */
+  .welcomemat { background: var(--ink); color: #fff; }
+
+  /* sticky controls: paper bar, not a pink field */
+  .controls { background: var(--porcelain); border-bottom: 1px solid var(--line); }
+  .filterbar .lead { color: var(--ink); }
+  .refine-group { border-color: var(--line); }
+  .clearall { color: var(--ink-soft); border-color: var(--line); }
+  .clearall:hover { color: var(--pink-deep); border-color: var(--pink-deep); background: transparent; }
+  .facet-btn, .pill, .clearall, .sortsel { background: var(--paper); }
+
+  /* primary CTAs: pink fill + ink text (white on pink only at ≥24px / ≥19px bold) */
+  .go, .sheet-apply, .buyover, .price-row button { background: var(--pink); color: var(--ink); }
+  .go:hover, .sheet-apply:hover, .buyover:hover { background: var(--ink); color: #fff; }
+
+  /* selected / active states: pink fill + ink text, never pink or white small text */
+  .chip.on, .pill.on, .savedbtn.on, .modal-actions .wishbtn.on, .wish.on,
+  .facet-btn .badge, .mcount { background: var(--pink); color: var(--ink); }
+  /* any text on a pink fill is bold (Kurt 07-02) */
+  .go, .sheet-apply, .buyover, .price-row button, .chip.on, .pill.on, .savedbtn.on,
+  .modal-actions .wishbtn.on, .facet-btn .badge, .mcount,
+  .afpill:hover, .afpill:focus-visible { font-weight: 700; }
+  .chip.on, .pill.on, .savedbtn.on { border-color: var(--ink); }
+  .afpill:hover, .afpill:focus-visible { background: var(--pink); color: var(--ink); border-color: var(--ink); }
+
+  /* label corrections: eyebrows in ink, star ratings in muted ink (meaningful ≠ tint) */
+  .eyebrow { color: var(--ink); }
+  .card .rate, .modal-rate { color: var(--ink-soft); }
+
+  /* links: secondary text with primary underline */
+  .card .links a.pdp, .card .links a.mlt, .modal-actions a.pdp, .modal-actions a.buy,
+  .modal-actions a.mlt { color: var(--pink-deep); border-bottom-color: var(--pink); }
+  .about-col a, .foot a { text-decoration-color: var(--pink); }
+
+  /* focus-visible: 2px solid ink, 2px offset (WCAG 2.4.7 / 1.4.11) */
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* ═══ PUNCH-UP (Kurt 07-02, energy borrowed from weird.shopping) ═══ */
+  /* hero hierarchy flip: wordmark becomes a label, the tagline gets the display type */
+  .masthead h1 { font-size: 24px; }
+  .headline { font-size: clamp(28px, 3.2vw, 40px); font-weight: 700; line-height: 1.06;
+    letter-spacing: -0.01em; color: var(--ink); margin: 10px 0 8px; }  /* sized to hold one line on desktop (Kurt 07-02) */
+  .headline .scribble { background:
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 12" preserveAspectRatio="none"><path d="M2 9 Q 18 3 38 8 T 78 7 T 118 6" fill="none" stroke="%236DC6EC" stroke-width="5" stroke-linecap="round"/></svg>')
+    bottom / 100% .28em no-repeat; padding-bottom: .16em; white-space: nowrap; }
+  .scout-note { font-family: "Caveat", cursive; font-size: 24px; color: var(--pink-deep);
+    transform: rotate(-2deg); width: max-content; margin: 10px 0 2px 2px; }
+  /* try-these chips + surprise-me dice (built by buildTryBar from POPULAR) */
+  .trybar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
+  .trybar .try-lead { font-family: var(--mono); font-size: 12px; font-weight: 700;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); margin-right: 4px; }
+  .trychip { font-family: var(--mono); font-size: 12px; font-weight: 500; letter-spacing: .03em;
+    background: var(--paper); color: var(--ink); border: 1px solid var(--line);
+    border-radius: 4px; padding: 8px 12px; cursor: pointer; }
+  .trychip:hover { border-color: var(--ink); }
+  .trychip.dice { background: var(--pink); border-color: var(--ink); font-weight: 700; }
+  .trychip.dice:hover { background: var(--ink); color: #fff; }
+  /* marquee ticker: mono caps one-liners, tint riso asterisks; static when reduced-motion */
+  .ticker { display: none; /* hidden (Kurt 07-02); markup kept for easy re-enable */
+    overflow: hidden; background: var(--porcelain);
+    border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+  .ticker-track { display: flex; width: max-content; animation: tickerScroll 36s linear infinite; }
+  .ticker-set { display: inline-flex; align-items: center; white-space: nowrap;
+    font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ink); padding: 10px 0; }
+  .ticker-set i { font-style: normal; font-size: 16px; color: var(--tint); padding: 0 18px; }
+  @keyframes tickerScroll { to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .ticker-track { animation: none; } }
 </style>
 </head>
 <body>
@@ -502,7 +620,9 @@
   <div class="wrap hero-grid">
     <div class="masthead reveal">
       <h1>Doll<em>Scout</em></h1>
-      <p class="sub">Search Barbie across millions of stores at once. If she's out there, we'll find her.</p>
+      <p class="headline">If she's out there, <span class="scribble">we'll find her</span>.</p>
+      <p class="sub">Search collector Barbie across millions of independent shops at once.</p>
+      <div class="scout-note" aria-hidden="true">name the grail &darr;</div>
       <div class="searchbar">
         <div class="search-wrap">
           <input id="q" type="text" placeholder="Search by name, line, designer, or era"
@@ -513,9 +633,14 @@
         </div>
         <button class="go" onclick="runSearch()">Search</button>
       </div>
+      <div class="trybar" id="trybar" aria-label="Try a search"></div>
     </div>
   </div>
 </section>
+<div class="ticker" aria-hidden="true"><div class="ticker-track">
+  <span class="ticker-set">NRFB or it didn&rsquo;t happen<i>&#10033;</i>the hunt is the hobby<i>&#10033;</i>one more doll won&rsquo;t hurt<i>&#10033;</i>pulled live from independent shops<i>&#10033;</i>she&rsquo;s out there<i>&#10033;</i>grails located daily<i>&#10033;</i></span>
+  <span class="ticker-set">NRFB or it didn&rsquo;t happen<i>&#10033;</i>the hunt is the hobby<i>&#10033;</i>one more doll won&rsquo;t hurt<i>&#10033;</i>pulled live from independent shops<i>&#10033;</i>she&rsquo;s out there<i>&#10033;</i>grails located daily<i>&#10033;</i></span>
+</div></div>
 <!-- ═══ /BRAND BLOCK 2/6 ═══ -->
 
 <div class="controls">
@@ -566,10 +691,6 @@
           surfaces dolls that independent shops already list for sale, then sends you to the shop
           to buy. It is <b>not a marketplace or a seller</b>: we hold no inventory, take no
           payments, and complete no sales.</p>
-        <p>At this time, we <b>receive no compensation</b>. No affiliate commissions, no merchant
-          fees, no sponsorships, and no ads. The project runs at a <b>net financial loss</b> and
-          exists only as an experiment testing Shopify's
-          <a href="https://www.shopify.com/ucp" target="_blank" rel="noopener">Universal Commerce Protocol</a> (UCP).</p>
       </div>
       <div class="about-col">
         <p>Listings, prices, images, and availability belong to the merchants and arrive live via
@@ -637,9 +758,21 @@ let lastTotal = 0;                 // latest result total (labels the mobile she
 const loadedImgs = new Set();      // image URLs that have painted — re-render them without a fade flash
 const failedImgs = new Set();      // image URLs that 404'd — kept out of the grid across re-sorts
 
-// ═══ BRAND BLOCK 5/6: JS brand constants — the item noun + wishlist storage key ═══
+// ═══ BRAND BLOCK 5/6: JS brand constants — item noun, voice strings, wishlist storage key ═══
 // NOUN/NOUNS label every count, wishlist message, and aria-label in the UI.
 const NOUN = 'doll', NOUNS = 'dolls';
+// Voice strings: the brand-flavored copy in generic code paths. Re-skins swap these here.
+const MSG_SEARCHING = 'Scouting the shops…';
+const MSG_NO_MATCH = "She's out there. Just not under that name. Try a shorter term, a line, or a designer.";
+const MSG_WISH_EMPTY = `No saved ${NOUNS} yet. Every collection starts with one. Tap the ♥ to keep her here.`;
+const LABEL_MORE_LIKE = 'More like her';
+const LABEL_BACK_TO_HUNT = 'Back to the hunt';
+const TITLE_SAVE_WISH = 'Save her for later';
+const LABEL_LOCATED = 'located';        // count-line verb: "48 of 452 dolls located"
+const LABEL_SURPRISE = '🎲 Surprise me';  // dice chip in the hero try-bar
+// Console easter egg for whoever opens devtools on a referral site.
+console.log('%cDollScout', 'font-family:"Dancing Script",cursive;font-size:28px;color:#e0218a;',
+  "If she's out there, we'll find her. Built as a UCP experiment. Source: https://github.com/kgelster/magpie");
 // --- Wishlist: localStorage-backed, no account/backend. wishMode swaps the grid
 // to show saved cards (like "More like this"), rendered from snapshots. ---
 const WISHLIST_KEY = 'dollscout:wishlist:v1';
@@ -1039,7 +1172,7 @@ function cardHTML(c) {
   const wishBtn = c.id
     ? `<button class="wish${wished ? ' on' : ''}" type="button" data-id="${c.id}"
          aria-pressed="${wished}" aria-label="${wished ? 'Remove from' : 'Save to'} your saved ${NOUNS}"
-         title="${wished ? 'Saved' : `Save this ${NOUN}`}">♥</button>`
+         title="${wished ? 'Saved' : TITLE_SAVE_WISH}">♥</button>`
     : '';
   // Buy-now CTA overlaid on the photo (was the quick-view button; quick view is now the photo click).
   const buyOver = buyUrl
@@ -1053,7 +1186,7 @@ function cardHTML(c) {
     ? `<a class="name-link" href="${link}" target="_blank" rel="noopener noreferrer">${esc(c.title)}</a>`
     : esc(c.title);
   const pdp = pdpUrl ? `<a class="pdp" href="${pdpUrl}" target="_blank" rel="noopener noreferrer">View</a>` : '';
-  const mlt = c.id ? `<a class="mlt" href="#" data-id="${c.id}" data-title="${esc(c.title)}">More like this</a>` : '';
+  const mlt = c.id ? `<a class="mlt" href="#" data-id="${c.id}" data-title="${esc(c.title)}">${LABEL_MORE_LIKE}</a>` : '';
   return `<article class="card">
     ${cardImg}
     <div class="card-body">
@@ -1075,7 +1208,7 @@ function saveWishlist() { try { localStorage.setItem(WISHLIST_KEY, JSON.stringif
 function wishCountHTML() {
   return wishlist.length
     ? `<b>${wishlist.length}</b> saved ${wishlist.length === 1 ? NOUN : NOUNS}`
-    : `No saved ${NOUNS} yet. Tap the ♥ on any ${NOUN} to save it here.`;
+    : MSG_WISH_EMPTY;
 }
 function updateSavedBtn() {
   const label = '♥ Saved' + (wishlist.length ? ' · ' + wishlist.length : '');
@@ -1101,6 +1234,8 @@ function toggleWish(id) {
   const on = wishIds.has(id);                        // update this card's heart(s) in place
   document.querySelectorAll(`.wish[data-id="${cssEsc(id)}"]`).forEach(b => {
     b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
+    // one heartbeat on save; remove + reflow re-arms the animation for repeat saves
+    if (on) { b.classList.remove('beat'); void b.offsetWidth; b.classList.add('beat'); }
   });
   if (wishMode) {                                    // un-saving while viewing the list drops the card
     renderGrid();
@@ -1112,7 +1247,7 @@ function renderWishBanner() {
   const bar = document.getElementById('wishbar');
   if (wishMode) {
     bar.innerHTML = `<span class="txt">Your <b>saved ${NOUNS}</b> (${wishlist.length})</span>
-      <button class="x" type="button" onclick="closeWishlist()">Back to search</button>`;
+      <button class="x" type="button" onclick="closeWishlist()">${LABEL_BACK_TO_HUNT}</button>`;
     bar.classList.add('on');
   } else { bar.innerHTML = ''; bar.classList.remove('on'); }
 }
@@ -1182,7 +1317,7 @@ function renderQuickActions(c) {
   const parts = [];
   if (pdpUrl) parts.push(`<a class="pdp" href="${pdpUrl}" target="_blank" rel="noopener noreferrer">View at shop</a>`);
   if (buyUrl) parts.push(`<a class="buy" href="${buyUrl}" target="_blank" rel="noopener noreferrer">Buy now</a>`);
-  if (c.id) parts.push(`<a class="mlt" data-qvmlt="${c.id}" data-title="${esc(c.title)}">More like this</a>`);
+  if (c.id) parts.push(`<a class="mlt" data-qvmlt="${c.id}" data-title="${esc(c.title)}">${LABEL_MORE_LIKE}</a>`);
   const on = c.id && wishIds.has(c.id);
   parts.push(`<button class="wishbtn${on ? ' on' : ''}" type="button" data-qvwish="${c.id || ''}"
     aria-pressed="${on}">${on ? '♥ Saved' : '♥ Save'}</button>`);
@@ -1276,7 +1411,7 @@ async function fetchPage(cursor, append) {
   } else {
     allCards = [];
     // Reserve the grid's space with skeleton cards so the layout doesn't collapse.
-    count.innerHTML = '<span class="spinner" aria-hidden="true"></span>Searching the archive…';
+    count.innerHTML = '<span class="spinner" aria-hidden="true"></span>' + MSG_SEARCHING;
     grid.innerHTML = skeletonHTML();
   }
   try {
@@ -1296,8 +1431,8 @@ async function fetchPage(cursor, append) {
     const total = data.total_count != null ? data.total_count : shown;
     lastTotal = total; updateSheetApply();          // label the mobile sheet's Apply button
     count.innerHTML = (cards.length || append)
-      ? `<b>${shown}</b> of ${total} ${NOUNS}`
-      : `No ${NOUNS} match. Try a shorter term, a line, or a designer.`;
+      ? `<b>${shown}</b> of ${total} ${NOUNS} ${LABEL_LOCATED}`
+      : MSG_NO_MATCH;
     showLoadMore();
   } finally {
     loading = false;
@@ -1479,10 +1614,35 @@ document.getElementById('activefilters').addEventListener('click', (e) => {
   startPlaceholder();
 })();
 
+// Hero try-bar: the first 4 POPULAR searches as one-tap chips, plus a surprise-me
+// dice that runs a random taxonomy query. Built after loadTaxonomy (needs suggestIndex).
+function buildTryBar() {
+  const bar = document.getElementById('trybar');
+  if (!bar) return;
+  const chips = POPULAR.slice(0, 4).map(lbl => {
+    const hit = suggestIndex.find(s => s.label === lbl);
+    return hit ? `<button type="button" class="trychip" data-q="${encodeURIComponent(hit.q)}">${esc(lbl)}</button>` : '';
+  }).join('');
+  bar.innerHTML = `<span class="try-lead">Try</span>${chips}
+    <button type="button" class="trychip dice" id="dicechip">${LABEL_SURPRISE}</button>`;
+  bar.addEventListener('click', (e) => {
+    const b = e.target.closest('.trychip'); if (!b) return;
+    const q = b.id === 'dicechip'
+      ? suggestIndex[Math.floor(Math.random() * suggestIndex.length)].q
+      : decodeURIComponent(b.dataset.q);
+    const input = document.getElementById('q');
+    input.value = q;
+    document.getElementById('clearx').style.display = 'block';
+    stopPlaceholder();
+    runSearch();
+  });
+}
+
 // Init: build the filter bar first (chips must exist before we restore chip state
 // from the URL), then restore full state from ?q=/chip/price/available and search.
 (async function init() {
   await loadTaxonomy();
+  buildTryBar();
   restoreStateFromURL();
   refresh();
 })();
