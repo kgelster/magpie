@@ -180,8 +180,9 @@
   .facet-btn.active { border-color: var(--pink-deep); color: var(--pink-deep); }
   .facet.open .facet-btn { border-color: var(--ink); }
   .pill.on { background: var(--ink); color: var(--porcelain); border-color: var(--ink); }
-  .clearall { border-style: dashed; color: var(--mauve); display: none; background: transparent; }
-  .clearall:hover { color: var(--pink-deep); border-color: var(--pink-deep); }
+  .clearall { border-style: dashed; display: none; background: transparent;
+    color: #fff; border-color: rgba(255,255,255,.65); }   /* readable on the hot-pink bar */
+  .clearall:hover { color: #fff; border-color: #fff; background: rgba(255,255,255,.14); }
   .facet-panel { display: none; position: absolute; z-index: 30; top: calc(100% + 8px); left: 0;
     background: var(--paper); border: 1px solid var(--ink); padding: 14px; min-width: 214px;
     box-shadow: 0 20px 40px -24px rgba(26,16,19,.5); }
@@ -465,6 +466,9 @@
     .facet.open .facet-panel { display: block; }
 
     .pill, .clearall { width: 100%; justify-content: flex-start; }
+    /* inside the paper sheet the white-on-pink treatment is invisible — back to ink */
+    .clearall { color: var(--mauve); border-color: var(--line); }
+    .clearall:hover { color: var(--pink-deep); border-color: var(--pink-deep); background: transparent; }
     .price-row { flex-wrap: wrap; }
     /* Sort matches the full-width facet rows: dark "SORT" caption over a full-width select
        (the base .lead is white for the pink bar; on the paper sheet it must be ink). */
