@@ -523,9 +523,10 @@
   .search-wrap input, .price-row input, .price-row button, .chip, .facet-btn, .pill,
   .clearall, .sortsel, .afpill, .likebar .x, .modal-actions .wishbtn { border-radius: 4px; }
 
-  /* signature print-shadow: readable secondary layer, tint offset behind, no blur */
-  .masthead h1, .foot .brand-name { color: var(--pink-deep); text-shadow: 3px 3px 0 var(--tint); }
-  .masthead h1 em, .foot .brand-name em { color: inherit; }
+  /* signature print-shadow: readable secondary layer, tint offset behind, no blur
+     (hero wordmark removed 07-02; the footer brand-name is the remaining wordmark) */
+  .foot .brand-name { color: var(--pink-deep); text-shadow: 3px 3px 0 var(--tint); }
+  .foot .brand-name em { color: inherit; }
 
   /* hero: solid primary band (Kurt 07-02, supersedes the blurred photo) — the one
      sanctioned decorative use of pink; the white card carries all reading contrast */
@@ -580,10 +581,11 @@
   :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
   /* ═══ PUNCH-UP (Kurt 07-02, energy borrowed from weird.shopping) ═══ */
-  /* hero hierarchy flip: wordmark becomes a label, the tagline gets the display type */
-  .masthead h1 { font-size: 24px; }
-  .headline { font-size: clamp(28px, 3.2vw, 40px); font-weight: 700; line-height: 1.06;
-    letter-spacing: -0.01em; color: var(--ink); margin: 10px 0 8px; }  /* sized to hold one line on desktop (Kurt 07-02) */
+  /* hero hierarchy: the headline IS the h1 (wordmark removed 07-02, brand lives in the
+     welcome mat + footer). Selector outranks the legacy .masthead h1 base rule. */
+  .masthead .headline { font-family: var(--sans); font-size: clamp(28px, 3.2vw, 40px);
+    font-weight: 700; line-height: 1.06; letter-spacing: -0.01em; color: var(--ink);
+    text-shadow: none; margin: 0 0 8px; }  /* sized to hold one line on desktop (Kurt 07-02) */
   .headline .scribble { background:
     url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 12" preserveAspectRatio="none"><path d="M2 9 Q 18 3 38 8 T 78 7 T 118 6" fill="none" stroke="%236DC6EC" stroke-width="5" stroke-linecap="round"/></svg>')
     bottom / 100% .28em no-repeat; padding-bottom: .16em; white-space: nowrap; }
@@ -614,13 +616,12 @@
 </head>
 <body>
 
-<!-- ═══ BRAND BLOCK 2/6: welcome mat + hero (wordmark, tagline, search placeholder) ═══ --><div class="welcomemat">The Unofficial Barbie Finder</div>
+<!-- ═══ BRAND BLOCK 2/6: welcome mat + hero (brand line, headline, search placeholder) ═══ --><div class="welcomemat">DollScout: The Unofficial Barbie Finder</div>
 
 <section class="hero">
   <div class="wrap hero-grid">
     <div class="masthead reveal">
-      <h1>Doll<em>Scout</em></h1>
-      <p class="headline">If she's out there, <span class="scribble">we'll find her</span>.</p>
+      <h1 class="headline">If she's out there, <span class="scribble">we'll find her</span>.</h1>
       <p class="sub">Search collector Barbie across millions of independent shops at once.</p>
       <div class="scout-note" aria-hidden="true">name the grail &darr;</div>
       <div class="searchbar">
