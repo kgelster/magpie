@@ -1,7 +1,7 @@
 """Domain configuration — this file IS the retargeting surface.
 
 Everything that makes this deployment a collector-Barbie finder (DollScout)
-instead of, say, a retro-game or vinyl finder lives here. To point Magpie at
+instead of, say, a vinyl or trading-card finder lives here. To point Magpie at
 your own hobby, edit this file plus the fenced BRAND blocks in index.html —
 see RETARGETING.md for the full checklist. The engine (app.py) never needs
 to change.
