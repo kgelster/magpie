@@ -23,12 +23,19 @@ to one nest.
 
 ## Why this exists
 
-Shopify's [Universal Commerce Protocol](https://www.shopify.com/ucp) (UCP) exposes a
-global catalog spanning millions of independent stores, searchable with **no merchant
-auth and no API tokens**. That makes a whole category of niche product finders buildable
-by one person in a weekend, and this repo is meant to prove it and to hand you the
-starting point. Built by [Kurt Elster](https://ethercycle.com), a Shopify partner, as a
-contribution to the community: more people building more of these lifts all ships.
+**UCP is demand generation for Shopify stores.** Every result card a finder like this
+shows is a free, high-intent referral to an independent merchant: the shopper arrived
+already hunting for exactly what that store sells, and one click lands them on the
+store's own product page. The merchants do nothing to participate. No integration, no
+feed, no fees; their catalog is already in UCP the moment they're on Shopify.
+
+Shopify's [Universal Commerce Protocol](https://www.shopify.com/ucp) exposes that
+global catalog, spanning millions of independent stores, searchable with **no merchant
+auth and no API tokens**. So a niche product finder is buildable by one person in a
+weekend, and every new one someone builds opens a new demand channel for thousands of
+stores at once. That's why this boilerplate is free: more finders means more demand
+for everyone. Built by [Kurt Elster](https://ethercycle.com), a Shopify partner, as a
+contribution to the community. A rising tide lifts all ships.
 
 The model is search-and-referral only. Result cards link out to each merchant's own
 product and buy-now pages. Magpie never builds carts, never takes payment, holds no
