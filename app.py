@@ -165,6 +165,39 @@ def _build_sitemap():
 SITEMAP_XML = _build_sitemap()
 INDEX_PATH = os.path.join(HERE, "index.html")
 
+# Styled 404 (copy lives in domain.py; palette mirrors index.html's :root).
+NOT_FOUND_HTML = f"""<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Page not found · {domain.SITE_NAME}</title>
+<style>
+  /* riso tokens: paper #EDE2E3, ink #111827, primary #F237A1 (fill+ink text),
+     secondary #2C40A7 (heading), tint #6DC6EC (decorative shadow) */
+  body {{ margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: #EDE2E3; color: #111827; font-family: "Space Grotesk", system-ui, sans-serif;
+    text-align: center; }}
+  main {{ padding: 32px; }}
+  .code {{ font-family: ui-monospace, "SF Mono", monospace; font-size: 12px; font-weight: 500;
+    letter-spacing: .05em; color: #111827; margin: 0 0 12px; }}
+  h1 {{ font-size: 32px; font-weight: 700; color: #2C40A7; text-shadow: 3px 3px 0 #6DC6EC;
+    margin: 0 0 12px; }}
+  p {{ color: #4B4A55; margin: 0 0 24px; }}
+  a {{ display: inline-block; background: #F237A1; color: #111827; border: 1px solid #111827;
+    border-radius: 8px; padding: 12px 24px; font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 12px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase;
+    text-decoration: none; }}
+  a:hover {{ background: #111827; color: #fff; }}
+  a:focus-visible {{ outline: 2px solid #111827; outline-offset: 2px; }}
+</style></head>
+<body><main>
+  <p class="code">404</p>
+  <h1>{domain.NOT_FOUND_HEADING}</h1>
+  <p>{domain.NOT_FOUND_BODY}</p>
+  <a href="/">{domain.NOT_FOUND_CTA}</a>
+</main></body></html>
+"""
+
 
 def render_index(query):
     """Serve index.html, injecting query-specific <title>/description for /?q= deep-links
@@ -485,9 +518,17 @@ class Handler(BaseHTTPRequestHandler):
             with open(path, "rb") as f:
                 body = f.read()
         except FileNotFoundError:
-            self.send_error(404, "Not found")
+            self._send_not_found()
             return
         self._send_bytes(body, content_type, cache_control)
+
+    def _send_not_found(self):
+        body = NOT_FOUND_HTML.encode("utf-8")
+        self.send_response(404)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
     def _send_text(self, text, content_type="text/plain; charset=utf-8", cache_control=None):
         self._send_bytes(text.encode("utf-8"), content_type, cache_control)
@@ -582,7 +623,7 @@ class Handler(BaseHTTPRequestHandler):
             finally:
                 _ucp_slots.release()
         else:
-            self.send_error(404, "Not found")
+            self._send_not_found()
 
     def log_message(self, fmt, *args):  # quieter console
         sys.stderr.write("  %s\n" % (fmt % args))

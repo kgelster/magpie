@@ -64,6 +64,13 @@ DEEP_LINK_DESC = ("Find {q} collector Barbie dolls across thousands of independe
 # silently stops updating. (RETARGETING.md step 3.)
 DEFAULT_META_TITLE = "DollScout — The Unofficial Collector Barbie Finder"
 
+# --- 404 page ----------------------------------------------------------------
+
+# Copy for the styled not-found page (app.py wraps these in NOT_FOUND_HTML).
+NOT_FOUND_HEADING = "Not every hunt pans out."
+NOT_FOUND_BODY = "This page doesn't exist, or wandered off."
+NOT_FOUND_CTA = "Back to the search"
+
 # --- Chip taxonomy -----------------------------------------------------------
 
 # Authored public-knowledge taxonomy of Barbie collecting terms: common Barbie
