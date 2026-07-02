@@ -513,6 +513,9 @@ class Handler(BaseHTTPRequestHandler):
         elif route == "/og-image.png":
             self._send_file(os.path.join(HERE, "og-image.png"), "image/png",
                             cache_control="public, max-age=86400")
+        elif route == "/hero-bg.jpg":
+            self._send_file(os.path.join(HERE, "hero-bg.jpg"), "image/jpeg",
+                            cache_control="public, max-age=86400")
         elif route == "/privacy":
             self._send_file(os.path.join(HERE, "privacy.html"), "text/html; charset=utf-8",
                             cache_control="public, max-age=3600")

@@ -108,8 +108,17 @@
     text-transform: uppercase; color: var(--bronze); }
 
   /* ---------- HERO (compact) ---------- */
-  .hero { padding: 30px 0 22px; background: #fcfcfc; }   /* subtle off-white header */
-  .masthead { position: relative; z-index: 40; }   /* keep the suggest dropdown above the sticky controls */
+  .hero { padding: 34px 0 30px;
+    background: url('/hero-bg.jpg') center 15%/cover no-repeat, #fcfcfc; }  /* image over off-white fallback; 15% keeps doll faces in frame */
+  /* glass card over the hero image — kept subtle: translucent white + light blur + hairline */
+  .masthead { position: relative; z-index: 40;   /* keep the suggest dropdown above the sticky controls */
+    max-width: 640px; padding: 24px 28px 28px;
+    background: rgba(255,255,255,.86); border: 1px solid rgba(255,255,255,.6);
+    box-shadow: 0 14px 34px -22px rgba(26,16,19,.45); }
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .masthead { background: rgba(255,255,255,.68);
+      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+  }
   .masthead h1 {
     font-family: var(--script); font-weight: 700;
     font-size: clamp(48px, 7vw, 88px); line-height: 1.02; letter-spacing: 0; margin: 6px 0 2px;
