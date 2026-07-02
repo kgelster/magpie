@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.venv/
+.git/
+README.md
+fly.toml
+Dockerfile
+.dockerignore

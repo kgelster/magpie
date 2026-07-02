@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- ═══ BRAND BLOCK 1/6: SEO head — title, meta, OG/Twitter, JSON-LD (see RETARGETING.md) ═══
+     NOTE: the og:title/twitter:title content string must exactly match
+     DEFAULT_META_TITLE in domain.py — app.py find-and-replaces it for /?q= deep-links. -->
+<title>DollScout — The Unofficial Collector Barbie Finder</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='88'%3E💖%3C/text%3E%3C/svg%3E">
+<meta name="description" content="DollScout: a search tool for Barbie doll collectors. Find collector Barbie dolls across thousands of Shopify shops in one place. Filter by line, designer, and era to track down the doll you're hunting.">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#f4edef">
+<link rel="canonical" href="https://www.dollscout.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DollScout">
+<meta property="og:url" content="https://www.dollscout.com/">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="DollScout — The Unofficial Collector Barbie Finder">
+<meta property="og:description" content="Find collector Barbie dolls across thousands of Shopify shops in one search. Filter by line, designer, and era.">
+<meta property="og:image" content="https://www.dollscout.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="DollScout — the unofficial finder for collector Barbie dolls.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="DollScout — The Unofficial Collector Barbie Finder">
+<meta name="twitter:description" content="A search tool for Barbie doll collectors — find dolls across thousands of Shopify shops in one place.">
+<meta name="twitter:image" content="https://www.dollscout.com/og-image.png">
+<meta name="twitter:image:alt" content="DollScout — the unofficial finder for collector Barbie dolls.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://www.dollscout.com/#website",
+      "url": "https://www.dollscout.com/",
+      "name": "DollScout",
+      "description": "The unofficial finder for collector Barbie dolls — search across thousands of Shopify shops in one place.",
+      "inLanguage": "en-US",
+      "publisher": { "@id": "https://ethercycle.com/#organization" },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://www.dollscout.com/?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://www.dollscout.com/#app",
+      "name": "DollScout",
+      "url": "https://www.dollscout.com/",
+      "applicationCategory": "ShoppingApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires JavaScript.",
+      "description": "A search and referral tool for Barbie doll collectors. It surfaces dolls independent shops already list for sale and links out to each shop; it is not a marketplace or seller and takes no payments.",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "publisher": { "@id": "https://ethercycle.com/#organization" }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://ethercycle.com/#organization",
+      "name": "Ethercycle LLC",
+      "url": "https://ethercycle.com"
+    }
+  ]
+}
+</script>
+<!-- ═══ /BRAND BLOCK 1/6 ═══ -->
+<!-- Theme levers (not fenced): the Google Fonts <link> below and the :root palette in <style>. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.shopify.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Dancing+Script:wght@600;700&family=Pacifico&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500;1,9..144,900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --porcelain: #f4edef;
+    --paper:     #ffffff;
+    --ink:       #1a1013;
+    --pink:      #e0218a;   /* large display + decorative only */
+    --pink-deep: #bc1573;   /* any pink that is text or sits behind white (WCAG-safe) */
+    --mauve:     #7a6570;   /* secondary text (>=4.5) */
+    --bronze:    #7a5b24;   /* gold-flavoured TEXT: eyebrows, stars (>=4.5) */
+    --gold:      #b0863c;   /* hairlines / ticks only — never text */
+    --line:      #e4d5db;
+    --serif: "Fraunces", Georgia, serif;
+    --sans: "Archivo", system-ui, sans-serif;
+    --script: "Dancing Script", "Fraunces", cursive;
+  }
+  * { box-sizing: border-box; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  /* top announcement "welcome mat" */
+  .welcomemat { background: var(--pink); color: #fff; text-align: center;
+    font-family: var(--sans); font-size: 11px; font-weight: 600; letter-spacing: .22em;
+    text-transform: uppercase; padding: 9px 16px; }
+  html { -webkit-font-smoothing: antialiased; }
+  body { margin: 0; background: var(--porcelain); color: var(--ink);
+    font-family: var(--sans); font-size: 16px; line-height: 1.5; }
+  a { color: inherit; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+  .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .22em;
+    text-transform: uppercase; color: var(--bronze); }
+
+  /* ---------- HERO (compact) ---------- */
+  .hero { padding: 30px 0 22px; background: #fcfcfc; }   /* subtle off-white header */
+  .masthead { position: relative; z-index: 40; }   /* keep the suggest dropdown above the sticky controls */
+  .masthead h1 {
+    font-family: var(--script); font-weight: 700;
+    font-size: clamp(48px, 7vw, 88px); line-height: 1.02; letter-spacing: 0; margin: 6px 0 2px;
+  }
+  .masthead h1 em { font-style: normal; color: var(--pink); }
+  .masthead .sub { margin: 14px 0 20px; max-width: 40ch; color: var(--mauve); font-size: 15px; }
+  .searchbar { display: flex; gap: 10px; max-width: 520px; }
+  .search-wrap { position: relative; flex: 1; }
+  .search-wrap input {
+    width: 100%; font-family: var(--sans); font-size: 16px; color: var(--ink);
+    padding: 13px 40px 13px 0; background: transparent; border: 0; border-bottom: 2px solid var(--ink);
+  }
+  .search-wrap input::placeholder { color: var(--mauve); }
+  .search-wrap input:focus { outline: none; border-color: var(--pink-deep); }
+  .clearx { position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
+    border: 0; background: none; color: var(--mauve); cursor: pointer; font-size: 20px;
+    line-height: 1; display: none; padding: 4px; }
+  .clearx:hover { color: var(--pink-deep); }
+  .go { border: 0; background: var(--ink); color: var(--porcelain); cursor: pointer;
+    font-family: var(--sans); font-size: 11px; font-weight: 600; letter-spacing: .18em;
+    text-transform: uppercase; padding: 0 22px; }
+  .go:hover { background: var(--pink-deep); }
+
+  /* ---------- SEARCH SUGGESTIONS / AUTOCOMPLETE ---------- */
+  .suggest { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 30;
+    background: var(--paper); border: 1px solid var(--gold);
+    box-shadow: 0 18px 40px -20px rgba(26,16,19,.5); display: none; overflow: hidden; }
+  .suggest.on { display: block; }
+  .suggest .s-head { font-size: 10px; font-weight: 600; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--mauve); padding: 11px 14px 6px; }
+  .suggest .s-item { display: flex; align-items: baseline; gap: 10px; width: 100%;
+    text-align: left; border: 0; background: none; cursor: pointer; font-family: var(--sans);
+    font-size: 14px; color: var(--ink); padding: 9px 14px; }
+  .suggest .s-item .s-grp { margin-left: auto; font-size: 10px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--mauve); }
+  .suggest .s-item:hover, .suggest .s-item.active { background: var(--porcelain); }
+  .suggest .s-item:hover, .suggest .s-item.active,
+  .suggest .s-item:hover .s-grp, .suggest .s-item.active .s-grp { color: var(--pink-deep); }
+  .suggest .s-item mark { background: none; color: var(--pink-deep); font-weight: 600; }
+
+  /* ---------- STICKY CONTROLS ---------- */
+  .controls { position: sticky; top: 0; z-index: 20; background: var(--pink);
+    padding-bottom: 4px; box-shadow: 0 10px 22px -18px rgba(26,16,19,.4); }
+  .filterbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 14px 0; }
+  .filterbar .lead { font-size: 11px; font-weight: 600; letter-spacing: .18em;
+    text-transform: uppercase; color: #fff; margin-right: 2px; }   /* white on the hot-pink bar */
+  /* bordered box around the refine controls (label + facets + price + in-stock) */
+  .refine-group { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    border: 1px solid rgba(255,255,255,.55); padding: 7px 9px; }   /* light border reads on pink */
+  .facet { position: relative; }
+  .facet-btn, .pill, .clearall {
+    font-family: var(--sans); font-size: 11px; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink); background: var(--porcelain); cursor: pointer;
+    border: 1px solid var(--line); padding: 9px 14px; display: inline-flex; align-items: center; gap: 8px; }
+  .facet-btn:hover, .pill:hover { border-color: var(--ink); }
+  .facet-btn .caret { color: var(--mauve); font-size: 9px; }
+  .facet-btn .badge { display: none; background: var(--pink-deep); color: #fff;
+    border-radius: 999px; font-size: 10px; letter-spacing: 0; padding: 1px 6px; }
+  .facet-btn.active { border-color: var(--pink-deep); color: var(--pink-deep); }
+  .facet.open .facet-btn { border-color: var(--ink); }
+  .pill.on { background: var(--ink); color: var(--porcelain); border-color: var(--ink); }
+  .clearall { border-style: dashed; color: var(--mauve); display: none; background: transparent; }
+  .clearall:hover { color: var(--pink-deep); border-color: var(--pink-deep); }
+  .facet-panel { display: none; position: absolute; z-index: 30; top: calc(100% + 8px); left: 0;
+    background: var(--paper); border: 1px solid var(--ink); padding: 14px; min-width: 214px;
+    box-shadow: 0 20px 40px -24px rgba(26,16,19,.5); }
+  .facet:nth-last-child(-n+3) .facet-panel { left: auto; right: 0; }
+  .facet.open .facet-panel { display: block; }
+  .chip { display: block; width: 100%; text-align: left; margin: 0 0 4px; padding: 8px 10px;
+    border: 1px solid var(--line); background: var(--paper); font-family: var(--sans);
+    font-size: 13px; color: var(--ink); cursor: pointer; }
+  .chip:last-child { margin-bottom: 0; }
+  .chip:hover { border-color: var(--ink); }
+  .chip.on { background: var(--pink-deep); color: #fff; border-color: var(--pink-deep); }
+  .price-row { display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 13px; }
+  .price-row input { width: 78px; padding: 8px; border: 1px solid var(--line);
+    font-family: var(--sans); font-size: 13px; }
+  .price-row input:focus { outline: none; border-color: var(--pink-deep); }
+  .price-row button { background: var(--ink); color: var(--porcelain); border: 0; padding: 8px 12px;
+    font-size: 10px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+
+  /* Mobile filter bottom-sheet: inert on desktop — `.sheet` is display:contents so #filterbar
+     stays a normal sticky-bar child; the sheet chrome + toolbar only appear < 720px (see @media). */
+  .mtoolbar, .sheet-scrim, .sheet-head, .sheet-foot { display: none; }
+  .sheet { display: contents; }
+
+  .likebar { display: none; align-items: center; gap: 12px; padding: 20px 0 0; }
+  .likebar.on { display: flex; }
+  .likebar .txt { font-size: 13px; color: var(--mauve); }
+  .likebar .txt b { color: var(--ink); font-family: var(--serif); font-weight: 500; }
+  .likebar .x { border: 1px solid var(--line); background: var(--paper); cursor: pointer;
+    font-family: var(--sans); font-size: 10px; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase; padding: 7px 11px; color: var(--ink); }
+  .likebar .x:hover { border-color: var(--pink-deep); color: var(--pink-deep); }
+
+  /* ---------- SORT + ACTIVE-FILTER PILLS ---------- */
+  .sortlabel { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+  .sortlabel .lead { margin-right: 0; }
+  .sortsel { font-family: var(--sans); font-size: 11px; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink); background: var(--porcelain);
+    border: 1px solid var(--line); padding: 9px 12px; cursor: pointer; }
+  .sortsel:hover { border-color: var(--ink); }
+  .sortsel:focus { outline: none; border-color: var(--pink-deep); }
+
+  .activefilters { display: none; flex-wrap: wrap; gap: 8px; padding: 18px 0 0; }
+  .activefilters.on { display: flex; }
+  .afpill { font-family: var(--sans); font-size: 11px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--pink-deep); background: var(--paper);
+    border: 1px solid var(--pink-deep); padding: 6px 10px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; }
+  .afpill:hover, .afpill:focus-visible { background: var(--pink-deep); color: #fff; }
+  .afpill .x { font-size: 14px; line-height: 1; }
+
+  /* saved-items (wishlist) button in the sticky bar */
+  .savedbtn { color: var(--pink-deep); border-color: var(--pink-deep); background: var(--paper); }
+  .savedbtn:hover { border-color: var(--pink-deep); background: var(--porcelain); }
+  .savedbtn.on { background: var(--pink-deep); color: #fff; border-color: var(--pink-deep); }
+
+  /* heart save toggle overlaid on each card image */
+  .wish { position: absolute; top: 8px; right: 8px; z-index: 3; width: 34px; height: 34px;
+    border: 0; border-radius: 50%; background: rgba(255,255,255,.86); color: var(--mauve);
+    cursor: pointer; font-size: 17px; line-height: 1; display: flex; align-items: center;
+    justify-content: center; box-shadow: 0 2px 8px -3px rgba(26,16,19,.5);
+    transition: transform .15s ease, color .15s ease; }
+  .wish:hover { color: var(--pink-deep); transform: scale(1.12); }
+  .wish.on { color: var(--pink); background: #fff; }
+
+  /* Buy-now CTA on each card photo (appears on hover; always shown on touch) */
+  .buyover { position: absolute; bottom: 8px; right: 8px; z-index: 3; height: 32px; padding: 0 16px;
+    display: inline-flex; align-items: center; border: 0; border-radius: 999px; text-decoration: none;
+    background: var(--pink-deep); color: #fff; cursor: pointer;
+    font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    opacity: 0; transform: translateY(4px); transition: opacity .18s ease, transform .18s ease;
+    box-shadow: 0 2px 8px -3px rgba(26,16,19,.5); }
+  .card:hover .buyover, .buyover:focus-visible { opacity: 1; transform: none; }
+  .buyover:hover { background: var(--pink); }
+  @media (hover: none) { .buyover { opacity: 1; transform: none; } }
+
+  /* ---------- QUICK-VIEW MODAL ---------- */
+  .modal[hidden] { display: none; }
+  .modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center;
+    justify-content: center; padding: 24px; }
+  .modal-backdrop { position: absolute; inset: 0; background: rgba(26,16,19,.55); }
+  .modal-card { position: relative; z-index: 1; background: var(--paper); width: 100%; max-width: 920px;
+    max-height: 88vh; overflow: auto; box-shadow: 0 40px 90px -30px rgba(26,16,19,.7); }
+  .modal-x { position: absolute; top: 12px; right: 12px; z-index: 2; width: 38px; height: 38px; border: 0;
+    background: rgba(255,255,255,.92); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer;
+    border-radius: 50%; box-shadow: 0 2px 8px -3px rgba(26,16,19,.5); }
+  .modal-x:hover { color: var(--pink-deep); }
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; }
+  .modal-gallery { background: var(--porcelain); }
+  .modal-main { aspect-ratio: 1/1; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+  .modal-main img { width: 100%; height: 100%; object-fit: contain; }
+  .modal-thumbs { display: flex; gap: 8px; padding: 12px; flex-wrap: wrap; }
+  .modal-thumb { width: 54px; height: 54px; border: 1px solid var(--line); background: var(--paper);
+    padding: 0; cursor: pointer; overflow: hidden; }
+  .modal-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .modal-thumb.on { border-color: var(--pink-deep); }
+  .modal-info { padding: 32px 30px 26px; display: flex; flex-direction: column; gap: 9px; }
+  .modal-info .house { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--mauve); }
+  .modal-title { font-family: var(--serif); font-size: 24px; line-height: 1.15; margin: 0; }
+  .modal-price { font-family: var(--serif); font-size: 22px; color: var(--pink-deep); }
+  .modal-rate { font-size: 12px; color: var(--bronze); letter-spacing: .1em; }
+  .modal-desc { font-size: 13.5px; line-height: 1.6; color: var(--mauve); margin: 4px 0 0; }
+  .modal-actions { margin-top: auto; padding-top: 20px; display: flex; gap: 14px; align-items: center;
+    flex-wrap: wrap; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+  .modal-actions a { text-decoration: none; }
+  .modal-actions a.pdp { border-bottom: 1px solid var(--ink); padding-bottom: 2px; }
+  .modal-actions a.pdp:hover { color: var(--pink-deep); border-color: var(--pink-deep); }
+  .modal-actions a.buy { color: var(--pink-deep); border-bottom: 1px solid var(--pink-deep); padding-bottom: 2px; }
+  .modal-actions a.mlt { color: var(--bronze); border-bottom: 1px solid var(--bronze); padding-bottom: 2px; cursor: pointer; }
+  .modal-actions a.mlt:hover { color: var(--pink-deep); border-color: var(--pink-deep); }
+  .modal-actions .wishbtn { margin-left: auto; border: 1px solid var(--pink-deep); background: var(--paper);
+    color: var(--pink-deep); padding: 8px 13px; cursor: pointer; font: inherit; font-size: 11px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; }
+  .modal-actions .wishbtn.on { background: var(--pink-deep); color: #fff; }
+  body.modal-open { overflow: hidden; }
+  @media (max-width: 720px) { .modal-grid { grid-template-columns: 1fr; } .modal-card { max-height: 92vh; } }
+
+  /* bottom loading indicator while infinite-scroll fetches the next page */
+  .morespin { justify-content: center; padding: 30px 0 0; }
+  .morespin .spinner { display: inline-block; width: 20px; height: 20px;
+    border: 2px solid var(--line); border-top-color: var(--pink-deep);
+    border-radius: 50%; animation: spin .7s linear infinite; }
+
+  .count { font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--mauve); padding: 22px 0 16px; min-height: 20px; }
+  .count b { color: var(--ink); }
+  .count .spinner { display: inline-block; width: 12px; height: 12px; margin-right: 9px;
+    vertical-align: -1px; border: 2px solid var(--line); border-top-color: var(--pink-deep);
+    border-radius: 50%; animation: spin .7s linear infinite; }
+
+  /* ---------- SKELETON (holds grid space while a search is in flight) ---------- */
+  .card.sk { pointer-events: none; }
+  .sk .card-img, .sk-line { background:
+    linear-gradient(100deg, var(--porcelain) 30%, #ece2e6 50%, var(--porcelain) 70%);
+    background-size: 200% 100%; animation: shimmer 1.3s ease-in-out infinite; }
+  .sk-line { height: 11px; border-radius: 2px; margin-top: 9px; }
+  .sk-sm { width: 42%; } .sk-lg { width: 85%; height: 15px; } .sk-md { width: 56%; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+  /* ---------- GRID (each product = a card) ---------- */
+  .grid { display: grid; gap: 22px; grid-template-columns: repeat(auto-fill, minmax(224px, 1fr)); }
+  .card { display: flex; flex-direction: column; background: var(--paper); border: 1px solid var(--line);
+    box-shadow: 0 2px 12px -8px rgba(26,16,19,.4); transition: transform .25s ease, box-shadow .25s ease; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 16px 34px -20px rgba(26,16,19,.5); }
+  .card-img { aspect-ratio: 4/5; overflow: hidden; background: var(--porcelain); position: relative; }
+  /* LQIP: tiny blurred placeholder behind the image until the full one fades in */
+  .card-img.lqip::before { content: ""; position: absolute; inset: 0; z-index: 0;
+    background-image: var(--lqip); background-size: cover; background-position: center;
+    filter: blur(14px); transform: scale(1.08); }
+  .card-img-link { display: block; width: 100%; height: 100%; line-height: 0; position: relative; z-index: 1;
+    border: 0; padding: 0; background: none; cursor: pointer; }
+  .card-img img { width: 100%; height: 100%; object-fit: cover; display: block; position: relative;
+    z-index: 1; opacity: 0; transition: transform .5s ease, opacity .5s ease; }
+  .card-img img.loaded { opacity: 1; }
+  .card:hover .card-img img { transform: scale(1.05); }
+  .card-img::after { content: ""; position: absolute; left: 0; bottom: 0; height: 2px; width: 0;
+    z-index: 2; background: var(--gold); transition: width .45s ease; }
+  .card:hover .card-img::after { width: 100%; }
+  .card-body { padding: 13px 15px 15px; display: flex; flex-direction: column; gap: 5px; flex: 1; }
+  .card .house { font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--mauve); }
+  .card .name { font-family: var(--serif); font-size: 16px; line-height: 1.2; }
+  .card .name-link { color: inherit; text-decoration: none; }
+  .card .name-link:hover { color: var(--pink-deep); text-decoration: underline; text-underline-offset: 2px; }
+  .card .price { font-family: var(--serif); font-size: 18px; color: var(--pink-deep); }
+  .card .rate { font-size: 11px; color: var(--bronze); letter-spacing: .1em; }
+  .card .links { margin-top: auto; padding-top: 11px; border-top: 1px solid var(--line);
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap; font-size: 10px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; }
+  .card .links a { text-decoration: none; }
+  .card .links a.pdp { border-bottom: 1px solid var(--ink); padding-bottom: 2px; }
+  .card .links a.pdp:hover { border-color: var(--pink-deep); color: var(--pink-deep); }
+  .card .links a.buy { color: var(--pink-deep); border-bottom: 1px solid var(--pink-deep); padding-bottom: 2px; }
+  .card .links a.mlt { color: var(--bronze); border-bottom: 1px solid var(--bronze); padding-bottom: 2px; }
+  .card .links a.mlt:hover { color: var(--pink-deep); border-color: var(--pink-deep); }
+
+  .more { display: block; margin: 40px auto 0; background: transparent; border: 1px solid var(--ink);
+    color: var(--ink); font-family: var(--sans); font-size: 11px; font-weight: 600; letter-spacing: .18em;
+    text-transform: uppercase; padding: 14px 32px; cursor: pointer; }
+  .more:hover { background: var(--ink); color: var(--porcelain); }
+
+  /* ---------- ABOUT / LEGAL ---------- */
+  .about { border-top: 1px solid var(--gold); margin-top: 60px; padding: 34px 0 4px; }
+  .about .eyebrow { display: block; margin-bottom: 18px; }
+  .about-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 40px 60px; max-width: 1000px; }
+  .about-col p { margin: 0 0 14px; font-size: 13px; line-height: 1.65; color: var(--mauve); }
+  .about-col p:last-child { margin-bottom: 0; }
+  .about-col p b { color: var(--ink); font-weight: 600; }
+  .about-col a { color: var(--pink-deep); }
+  .about-col .disclaimer { color: var(--ink); }
+
+  /* ---------- FOOTER ---------- */
+  footer { border-top: 1px solid var(--line); margin-top: 34px; padding: 26px 0 48px; }
+  .foot { display: grid; grid-template-columns: 1fr; gap: 24px; }
+  .foot .brand-name { font-family: var(--script); font-weight: 700; font-size: 32px; }
+  .foot .brand-name em { font-style: normal; color: var(--pink); }
+  .foot .tagline { color: var(--mauve); font-size: 13px; margin-top: 4px; }
+  .foot .credit { font-family: var(--serif); font-size: 16px; color: var(--ink); margin: 0 0 8px; max-width: 60ch; }
+  .foot .credit-sub { font-size: 12px; letter-spacing: .04em; color: var(--mauve); margin: 0 0 14px; }
+  .foot .fine { font-size: 12px; color: var(--mauve); line-height: 1.6; }
+  .foot a { color: var(--pink-deep); }
+  /* copyright + legal links on the left, trademark disclaimer on the right (same row on desktop) */
+  .foot .legal-row { display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 10px 24px; flex-wrap: wrap; }
+  .foot .legal-left { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+  .foot .legal-left p { margin: 0; }
+  .foot .legal-sep { color: var(--mauve); font-size: 12px; }
+  .foot .legal-right { margin: 0; text-align: right; }
+  @media (max-width: 640px) { .foot .legal-right { text-align: left; } }
+
+  /* reveal */
+  .reveal { opacity: 0; transform: translateY(12px); animation: rise .7s cubic-bezier(.2,.7,.2,1) forwards; }
+  .reveal.d2 { animation-delay: .12s; }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  :focus-visible { outline: 2px solid var(--pink-deep); outline-offset: 3px; }
+
+  @media (max-width: 860px) {
+    .wrap { padding: 0 20px; }
+    .about-cols { grid-template-columns: 1fr; gap: 14px; }
+  }
+
+  /* ---------- MOBILE FILTERS: bottom sheet (< 720px) ---------- */
+  @media (max-width: 720px) {
+    /* Raise the controls stacking context above the masthead (z-index:40) ONLY while the
+       sheet is open, so the scrim can dim the whole page. Closed, it stays at 20 so the
+       search-suggest dropdown still overlaps the bar. */
+    .controls.sheetopen { z-index: 90; }
+
+    /* Slim sticky toolbar: Filters (opens sheet) on the left, Saved on the right. */
+    .mtoolbar { display: flex; align-items: center; gap: 10px; padding: 12px 0; }
+    .mfilters { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--ink); background: var(--porcelain);
+      border: 1px solid var(--line); padding: 12px 18px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px; }
+    .mcount { display: none; background: var(--pink-deep); color: #fff; border-radius: 999px;
+      font-size: 10px; letter-spacing: 0; padding: 2px 7px; }
+    .mcount.on { display: inline-flex; }
+    .mfsaved { margin-left: auto; }
+    #savedbtn { display: none; }   /* the in-sheet Saved button; mobile uses the toolbar one */
+
+    /* Scrim behind the sheet. */
+    .sheet-scrim { display: block; position: fixed; inset: 0; z-index: 55;
+      background: rgba(26,16,19,.45); opacity: 0; visibility: hidden;
+      transition: opacity .28s ease, visibility .28s ease; }
+    .controls.sheetopen .sheet-scrim { opacity: 1; visibility: visible; }
+
+    /* The sheet itself: fixed to the bottom, slides up. */
+    .sheet { display: flex; flex-direction: column; position: fixed; left: 0; right: 0; bottom: 0;
+      z-index: 60; max-height: 84vh; background: var(--paper);
+      border-top-left-radius: 16px; border-top-right-radius: 16px;
+      box-shadow: 0 -18px 40px -20px rgba(26,16,19,.5);
+      transform: translateY(100%); visibility: hidden;
+      transition: transform .28s ease, visibility .28s ease; }
+    .controls.sheetopen .sheet { transform: translateY(0); visibility: visible; }
+
+    .sheet-head { display: flex; align-items: center; gap: 10px; position: relative;
+      padding: 16px 18px 8px; border-bottom: 1px solid var(--line); }
+    .sheet-grip { position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
+      width: 40px; height: 4px; border-radius: 2px; background: var(--line); }
+    .sheet-title { font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: .18em;
+      text-transform: uppercase; color: var(--ink); }
+    .sheet-x { margin-left: auto; background: none; border: 0; font-size: 26px; line-height: 1;
+      color: var(--mauve); cursor: pointer; padding: 0 4px; }
+    .sheet-x:hover { color: var(--pink-deep); }
+
+    /* Filters become a vertical, scrollable column. flex-wrap MUST be nowrap: a column-
+       direction wrap container spills overflow into a 2nd column instead of scrolling. */
+    .filterbar { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 14px;
+      padding: 16px 18px; overflow-y: auto; flex: 1; }
+    .filterbar > * { flex-shrink: 0; }   /* keep natural heights; let the column scroll */
+    .refine-group { display: flex; flex-direction: column; align-items: stretch; gap: 12px;
+      border: 0; padding: 0; }
+    .refine-group > .lead { display: none; }   /* the sheet header already says "Refine" */
+
+    /* Facets become full-width inline accordions (no absolute dropdowns). */
+    .facet { width: 100%; }
+    .facet-btn { width: 100%; justify-content: space-between; }
+    .facet-panel { position: static; display: none; border: 0; box-shadow: none;
+      padding: 8px 0 2px; min-width: 0; }
+    .facet.open .facet-panel { display: block; }
+
+    .pill, .clearall { width: 100%; justify-content: flex-start; }
+    .price-row { flex-wrap: wrap; }
+    /* Sort matches the full-width facet rows: dark "SORT" caption over a full-width select
+       (the base .lead is white for the pink bar; on the paper sheet it must be ink). */
+    .sortlabel { flex-direction: column; align-items: stretch; gap: 8px; margin-left: 0; width: 100%; }
+    .sortlabel .lead { color: var(--ink); }
+    .sortsel { width: 100%; margin-left: 0; }
+
+    /* Sticky Apply footer. */
+    .sheet-foot { display: block; padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--line); background: var(--paper); }
+    .sheet-apply { width: 100%; background: var(--pink-deep); color: #fff; border: 0; padding: 15px;
+      font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .14em;
+      text-transform: uppercase; cursor: pointer; }
+    .sheet-apply:hover { background: var(--pink); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { animation: none; opacity: 1; transform: none; }
+    .card, .card-img img, .card-img::after, .wish, .buyover { transition: none; }
+    .buyover { opacity: 1; transform: none; }
+    .card-img img { opacity: 1; }
+    .count .spinner, .morespin .spinner, .sk .card-img, .sk-line { animation: none; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ BRAND BLOCK 2/6: welcome mat + hero (wordmark, tagline, search placeholder) ═══ --><div class="welcomemat">The Unofficial Barbie Finder</div>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="masthead reveal">
+      <h1>Doll<em>Scout</em></h1>
+      <p class="sub">Search Barbie across millions of stores at once. If she's out there, we'll find her.</p>
+      <div class="searchbar">
+        <div class="search-wrap">
+          <input id="q" type="text" placeholder="Search by name, line, designer, or era"
+                 autocomplete="off" role="combobox" aria-autocomplete="list"
+                 aria-expanded="false" aria-controls="suggest" oninput="onQueryInput()">
+          <button class="clearx" id="clearx" title="Clear search" onclick="clearQuery()">×</button>
+          <div class="suggest" id="suggest" role="listbox" aria-label="Search suggestions"></div>
+        </div>
+        <button class="go" onclick="runSearch()">Search</button>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ═══ /BRAND BLOCK 2/6 ═══ -->
+
+<div class="controls">
+  <div class="wrap">
+    <!-- Mobile-only toolbar (< 720px): opens the filter bottom-sheet + jumps to Saved. -->
+    <div class="mtoolbar" id="mtoolbar">
+      <button class="mfilters" id="mfilters" type="button" aria-haspopup="dialog"
+              aria-expanded="false" aria-controls="sheet" onclick="openSheet()">
+        Filters <span class="mcount" id="mcount" aria-hidden="true"></span>
+      </button>
+      <button class="pill savedbtn mfsaved" id="msaved" type="button" onclick="openWishlist()">♥ Saved</button>
+    </div>
+    <div class="sheet-scrim" id="sheetscrim" onclick="closeSheet()"></div>
+    <!-- Desktop: `.sheet` is display:contents, so #filterbar is a normal sticky-bar child.
+         Mobile: `.sheet` is the bottom sheet (grab handle + scrollable filters + Apply foot). -->
+    <div class="sheet" id="sheet" role="dialog" aria-modal="false" aria-label="Refine filters">
+      <div class="sheet-head">
+        <span class="sheet-grip" aria-hidden="true"></span>
+        <span class="sheet-title">Refine</span>
+        <button class="sheet-x" type="button" aria-label="Close filters" onclick="closeSheet()">×</button>
+      </div>
+      <div class="filterbar" id="filterbar"><span class="lead">Refine</span></div>
+      <div class="sheet-foot">
+        <button class="sheet-apply" type="button" onclick="closeSheet()">Show <span id="sheetcount">dolls</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="likebar" id="likebar"></div>
+  <div class="likebar" id="wishbar"></div>
+  <div class="activefilters" id="activefilters" aria-label="Active filters"></div>
+  <div class="count" id="count" role="status" aria-live="polite"></div>
+  <div class="grid" id="grid"></div>
+  <div class="morespin" id="morespin" aria-hidden="true" style="display:none"><span class="spinner"></span></div>
+  <div id="sentinel" aria-hidden="true"></div>
+  <button class="more" id="loadmore" style="display:none" onclick="loadMore()">Show more</button>
+</main>
+
+<!-- ═══ BRAND BLOCK 3/6: About / What & Why (project story, UCP note, trademark disclaimer) ═══ -->
+<section class="about" id="about">
+  <div class="wrap">
+    <span class="eyebrow">What &amp; Why</span>
+    <div class="about-cols">
+      <div class="about-col">
+        <p>DollScout is a free search and referral tool for Barbie doll collectors. It
+          surfaces dolls that independent shops already list for sale, then sends you to the shop
+          to buy. It is <b>not a marketplace or a seller</b>: we hold no inventory, take no
+          payments, and complete no sales.</p>
+        <p>At this time, we <b>receive no compensation</b>. No affiliate commissions, no merchant
+          fees, no sponsorships, and no ads. The project runs at a <b>net financial loss</b> and
+          exists only as an experiment testing Shopify's
+          <a href="https://www.shopify.com/ucp" target="_blank" rel="noopener">Universal Commerce Protocol</a> (UCP).</p>
+      </div>
+      <div class="about-col">
+        <p>Listings, prices, images, and availability belong to the merchants and arrive live via
+          Shopify's <a href="https://www.shopify.com/ucp" target="_blank" rel="noopener">Universal Commerce Protocol</a>;
+          they can change without notice, and product images are served by the merchants, not hosted here.</p>
+        <p class="disclaimer">Independent and unofficial. Not affiliated with, endorsed by, or
+          sponsored by Mattel. Barbie® is a registered trademark of Mattel, Inc., used here for
+          descriptive reference only.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ═══ /BRAND BLOCK 3/6 ═══ -->
+
+<div class="modal" id="qvmodal" role="dialog" aria-modal="true" aria-labelledby="qv-title" hidden>
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-card">
+    <button class="modal-x" type="button" data-close aria-label="Close quick view">×</button>
+    <div class="modal-grid">
+      <div class="modal-gallery">
+        <div class="modal-main"><img id="qv-main" alt=""></div>
+        <div class="modal-thumbs" id="qv-thumbs"></div>
+      </div>
+      <div class="modal-info">
+        <div class="house" id="qv-house"></div>
+        <h2 class="modal-title" id="qv-title"></h2>
+        <div class="modal-price" id="qv-price"></div>
+        <div class="modal-rate" id="qv-rate"></div>
+        <p class="modal-desc" id="qv-desc"></p>
+        <div class="modal-actions" id="qv-actions"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ BRAND BLOCK 4/6: footer (wordmark, tagline, operator, legal links, trademark note) ═══ -->
+<footer>
+  <div class="wrap foot">
+    <div>
+      <div class="brand-name">Doll<em>Scout</em></div>
+      <p class="tagline">The Unofficial Finder for Barbie Doll Collectors.</p>
+    </div>
+    <div>
+      <div class="legal-row">
+        <div class="legal-left">
+          <p class="credit-sub">© <a href="https://ethercycle.com" target="_blank" rel="noopener">Ethercycle LLC</a></p>
+          <span class="legal-sep" aria-hidden="true">·</span>
+          <p class="fine"><a href="/privacy">Privacy Policy</a> · <a href="/terms">Terms of Service</a></p>
+        </div>
+        <p class="fine legal-right">Not affiliated with Mattel · Barbie® is a trademark of Mattel, Inc.</p>
+      </div>
+    </div>
+  </div>
+</footer>
+<!-- ═══ /BRAND BLOCK 4/6 ═══ -->
+
+<script>
+const LABELS = { "Decade": "Era", "Line / Series": "Line" };
+let taxonomyData = {}, qByGroup = {}, selectedChips = new Set(), suggestIndex = [];
+let availOnly = true, nextCursor = null, likeSeed = null, loading = false;   // likeSeed = {id, title}
+let infinite = true;               // auto-load next page on scroll; off → manual "Show more" (reaches footer)
+let sortMode = 'relevance';        // 'relevance' (UCP order) | 'price-asc' | 'price-desc'
+let allCards = [];                 // every card loaded for the current search (drives client-side sort)
+let lastTotal = 0;                 // latest result total (labels the mobile sheet's "Show N items" button)
+const loadedImgs = new Set();      // image URLs that have painted — re-render them without a fade flash
+const failedImgs = new Set();      // image URLs that 404'd — kept out of the grid across re-sorts
+
+// ═══ BRAND BLOCK 5/6: JS brand constants — the item noun + wishlist storage key ═══
+// NOUN/NOUNS label every count, wishlist message, and aria-label in the UI.
+const NOUN = 'doll', NOUNS = 'dolls';
+// --- Wishlist: localStorage-backed, no account/backend. wishMode swaps the grid
+// to show saved cards (like "More like this"), rendered from snapshots. ---
+const WISHLIST_KEY = 'dollscout:wishlist:v1';
+// ═══ /BRAND BLOCK 5/6 ═══
+let wishlist = loadWishlist();                    // array of card snapshots, newest first
+let wishIds = new Set(wishlist.map(c => c.id));   // fast membership lookup for hearts
+let wishMode = false;
+
+async function loadTaxonomy() {
+  taxonomyData = await (await fetch('/api/taxonomy')).json();
+  const bar = document.getElementById('filterbar');
+  // Bordered box grouping the refine controls (Refine label + facets + price + in-stock).
+  // Saved / Auto-load / Sort live outside it.
+  const refineGroup = document.createElement('div');
+  refineGroup.className = 'refine-group';
+  refineGroup.appendChild(bar.querySelector('.lead'));   // move the "Refine" label inside the box
+  bar.appendChild(refineGroup);                          // attach now so getElementById works for children
+  for (const [group, chips] of Object.entries(taxonomyData)) {
+    qByGroup[group] = new Set(chips.map(c => c.q));
+    chips.forEach(c => suggestIndex.push({ label: c.label, q: c.q, group: LABELS[group] || group }));
+    const facet = document.createElement('div');
+    facet.className = 'facet'; facet.dataset.group = group;
+    const chipHTML = chips.map(c =>
+      `<button type="button" class="chip" data-q="${encodeURIComponent(c.q)}">${c.label}</button>`).join('');
+    facet.innerHTML =
+      `<button class="facet-btn" type="button">${LABELS[group] || group}
+         <span class="badge"></span><span class="caret">▼</span></button>
+       <div class="facet-panel">${chipHTML}</div>`;
+    facet.querySelector('.facet-btn').onclick = (e) => { e.stopPropagation(); toggleFacet(facet); };
+    facet.querySelectorAll('.chip').forEach(el =>
+      el.onclick = (e) => { e.stopPropagation(); toggleChip(el); });
+    refineGroup.appendChild(facet);
+  }
+  const price = document.createElement('div');
+  price.className = 'facet'; price.dataset.group = '__price';
+  price.innerHTML =
+    `<button class="facet-btn" type="button">Price
+       <span class="badge"></span><span class="caret">▼</span></button>
+     <div class="facet-panel"><div class="price-row">
+       $ <input id="pmin" type="number" min="0" placeholder="min">
+       – <input id="pmax" type="number" min="0" placeholder="max">
+       <button type="button" id="priceApply">Apply</button>
+     </div></div>`;
+  price.querySelector('.facet-btn').onclick = (e) => { e.stopPropagation(); toggleFacet(price); };
+  price.querySelector('.facet-panel').onclick = (e) => e.stopPropagation();
+  refineGroup.appendChild(price);
+  document.getElementById('priceApply').onclick = () => { closeFacets(); updateBadges(); refresh(); };
+
+  const pill = document.createElement('button');
+  pill.className = 'pill on'; pill.id = 'availpill'; pill.type = 'button';
+  pill.textContent = 'In Stock';
+  pill.onclick = (e) => { e.stopPropagation(); toggleAvail(); };
+  refineGroup.appendChild(pill);
+
+  // Auto-load toggle: on = infinite scroll; off = manual "Show more" so the page
+  // can end and the footer (about / legal) becomes reachable.
+  const autopill = document.createElement('button');
+  autopill.className = 'pill on'; autopill.id = 'autopill'; autopill.type = 'button';
+  autopill.textContent = 'Auto-load';
+  autopill.title = 'Automatically load more as you scroll';
+  autopill.setAttribute('aria-pressed', 'true');
+  autopill.onclick = (e) => { e.stopPropagation(); toggleInfinite(); };
+  bar.appendChild(autopill);
+
+  const clr = document.createElement('button');
+  clr.className = 'clearall'; clr.id = 'clearall'; clr.type = 'button';
+  clr.textContent = 'Clear all';
+  clr.onclick = (e) => { e.stopPropagation(); clearAll(); };
+  bar.appendChild(clr);
+
+  // Sort control — UCP has no server-side sort, so this reorders results already
+  // loaded (and keeps reordering as infinite scroll pulls more pages). Floats right.
+  const sortWrap = document.createElement('label');
+  sortWrap.className = 'sortlabel';
+  sortWrap.innerHTML =
+    `<span class="lead">Sort</span>
+     <select class="sortsel" id="sort" aria-label="Sort results" onchange="onSortChange()">
+       <option value="relevance">Best match</option>
+       <option value="price-asc">Price: Low to High</option>
+       <option value="price-desc">Price: High to Low</option>
+     </select>`;
+  bar.appendChild(sortWrap);
+
+  // Saved-items (wishlist) button — first in the sticky bar, always reachable.
+  const saved = document.createElement('button');
+  saved.className = 'pill savedbtn'; saved.id = 'savedbtn'; saved.type = 'button';
+  saved.onclick = (e) => { e.stopPropagation(); openWishlist(); };
+  bar.insertBefore(saved, bar.firstChild);
+  updateSavedBtn();
+}
+
+function toggleFacet(facet) {
+  const open = facet.classList.contains('open'); closeFacets();
+  if (!open) facet.classList.add('open');
+}
+function closeFacets() { document.querySelectorAll('.facet.open').forEach(f => f.classList.remove('open')); }
+document.addEventListener('click', closeFacets);
+
+function toggleChip(el) {
+  const q = decodeURIComponent(el.dataset.q);
+  if (selectedChips.has(q)) { selectedChips.delete(q); el.classList.remove('on'); }
+  else { selectedChips.add(q); el.classList.add('on'); }
+  exitLike();          // picking a filter is a new keyword intent
+  updateBadges(); refresh();
+}
+function toggleAvail() {
+  availOnly = !availOnly;
+  document.getElementById('availpill').classList.toggle('on', availOnly);
+  updateBadges(); refresh();
+}
+
+function cssEsc(s) { return s.replace(/["\\]/g, '\\$&'); }
+function updateBadges() {
+  for (const [group, qset] of Object.entries(qByGroup)) {
+    const facet = document.querySelector(`.facet[data-group="${cssEsc(group)}"]`);
+    const n = [...selectedChips].filter(q => qset.has(q)).length;
+    const badge = facet.querySelector('.badge'), btn = facet.querySelector('.facet-btn');
+    badge.textContent = n; badge.style.display = n ? 'inline-block' : 'none';
+    btn.classList.toggle('active', n > 0);
+  }
+  const pmin = (document.getElementById('pmin')||{}).value;
+  const pmax = (document.getElementById('pmax')||{}).value;
+  const pf = document.querySelector('.facet[data-group="__price"]');
+  if (pf) {
+    const b = pf.querySelector('.badge'), set = (pmin || pmax);
+    b.textContent = set ? '$' : ''; b.style.display = set ? 'inline-block' : 'none';
+    pf.querySelector('.facet-btn').classList.toggle('active', !!set);
+  }
+  const active = selectedChips.size || pmin || pmax || !availOnly;
+  document.getElementById('clearall').style.display = active ? 'inline-flex' : 'none';
+  const nfilt = selectedChips.size + ((pmin || pmax) ? 1 : 0) + (availOnly ? 0 : 1);
+  const mc = document.getElementById('mcount');
+  if (mc) { mc.textContent = nfilt; mc.classList.toggle('on', nfilt > 0); }
+  renderActiveFilters();
+}
+
+// Removable pills that mirror the applied chip + price filters (the facet badges
+// show counts; these make each filter visible and one-click removable).
+function renderActiveFilters() {
+  const box = document.getElementById('activefilters');
+  const pills = [];
+  selectedChips.forEach(q => {
+    const el = [...document.querySelectorAll('.chip.on')]
+      .find(c => decodeURIComponent(c.dataset.q) === q);
+    const label = el ? el.textContent : q;
+    pills.push(`<button class="afpill" type="button" data-kind="chip"
+      data-q="${encodeURIComponent(q)}">${esc(label)} <span class="x" aria-hidden="true">×</span>
+      <span class="sr-only">remove filter</span></button>`);
+  });
+  const pmin = (document.getElementById('pmin') || {}).value;
+  const pmax = (document.getElementById('pmax') || {}).value;
+  if (pmin || pmax) {
+    const lbl = pmin && pmax ? `$${esc(pmin)}–$${esc(pmax)}`
+      : pmin ? `$${esc(pmin)}+` : `Under $${esc(pmax)}`;
+    pills.push(`<button class="afpill" type="button" data-kind="price">${lbl}
+      <span class="x" aria-hidden="true">×</span><span class="sr-only">remove price filter</span></button>`);
+  }
+  box.innerHTML = pills.join('');
+  box.classList.toggle('on', pills.length > 0);
+}
+function clearAll() {
+  selectedChips.clear();
+  document.querySelectorAll('.chip.on').forEach(c => c.classList.remove('on'));
+  const pmin = document.getElementById('pmin'), pmax = document.getElementById('pmax');
+  if (pmin) pmin.value = ''; if (pmax) pmax.value = '';
+  availOnly = true; document.getElementById('availpill').classList.add('on');
+  exitLike();
+  updateBadges(); refresh();
+}
+
+// ----- "More like this" -----
+function moreLikeThis(id, title) {
+  if (!id) return;
+  exitWish();
+  likeSeed = { id, title };
+  renderLikeBar();
+  fetchPage(null, false);
+  scrollToResults();
+}
+function exitLike() { likeSeed = null; renderLikeBar(); }
+function clearLike() { exitLike(); refresh(); }
+function renderLikeBar() {
+  const bar = document.getElementById('likebar');
+  if (likeSeed) {
+    bar.innerHTML = `<span class="txt">Showing ${NOUNS} like “<b>${esc(likeSeed.title)}</b>”</span>
+      <button class="x" type="button" onclick="clearLike()">Clear</button>`;
+    bar.classList.add('on');
+  } else { bar.innerHTML = ''; bar.classList.remove('on'); }
+}
+
+function onQueryInput() {
+  const v = document.getElementById('q').value;
+  document.getElementById('clearx').style.display = v ? 'block' : 'none';
+  stopPlaceholder();
+  v.trim() ? showMatches(v) : showPopular();
+}
+function clearQuery() {
+  const q = document.getElementById('q'); q.value = '';
+  document.getElementById('clearx').style.display = 'none';
+  runSearch();
+}
+
+// ----- Search assist: typewriter placeholder + suggestions / autocomplete -----
+// Vocabulary is the taxonomy already served to the page — no invented data.
+// ═══ BRAND BLOCK 6/6: suggestion + placeholder copy (labels must match domain.py TAXONOMY) ═══
+const POPULAR = ["Holiday Barbie", "Bob Mackie", "Silkstone / Fashion Model",
+  "1990s", "NRFB", "Dolls of the World"];
+const PH_EXAMPLES = ["Bob Mackie evening gown…", "1977 SuperStar Barbie…",
+  "Holiday Barbie 1988…", "Silkstone Fashion Model…", "Byron Lars Cinnabar…"];
+const BASE_PH = "Search by name, line, designer, or era";
+// ═══ /BRAND BLOCK 6/6 ═══
+const REDUCE_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let sugItems = [], sugActive = -1, sugHead = '', sugV = '';
+let phTimer = null, phI = 0, phC = 0, phDel = false;
+
+// Typewriter placeholder — only runs while the box is empty and unfocused.
+function tickPlaceholder() {
+  const input = document.getElementById('q');
+  const full = PH_EXAMPLES[phI];
+  phC += phDel ? -1 : 1;
+  input.placeholder = full.slice(0, phC);
+  let delay = phDel ? 40 : 95;
+  if (!phDel && phC >= full.length) { phDel = true; delay = 1500; }
+  else if (phDel && phC <= 0) { phDel = false; phI = (phI + 1) % PH_EXAMPLES.length; delay = 350; }
+  phTimer = setTimeout(tickPlaceholder, delay);
+}
+function startPlaceholder() {
+  const input = document.getElementById('q');
+  if (REDUCE_MOTION || input.value) { input.placeholder = BASE_PH; return; }
+  stopPlaceholder(); phI = 0; phC = 0; phDel = false; tickPlaceholder();
+}
+function stopPlaceholder() {
+  if (phTimer) { clearTimeout(phTimer); phTimer = null; }
+  document.getElementById('q').placeholder = BASE_PH;
+}
+
+// Dropdown suggestions
+function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function highlight(label, v) {           // labels are our own trusted taxonomy, safe to inject
+  return v ? label.replace(new RegExp('(' + escRe(v) + ')', 'ig'), '<mark>$1</mark>') : label;
+}
+function renderSuggest() {
+  const box = document.getElementById('suggest');
+  if (!sugItems.length) { closeSuggest(); return; }
+  // .s-head is role="presentation" so the listbox exposes only role="option" children.
+  box.innerHTML = `<div class="s-head" role="presentation">${sugHead}</div>` + sugItems.map((it, i) =>
+    `<button type="button" id="sug-opt-${i}" class="s-item${i === sugActive ? ' active' : ''}"
+       role="option" aria-selected="${i === sugActive}" data-i="${i}">${highlight(it.label, sugV)}<span class="s-grp">${it.group}</span></button>`).join('');
+  box.classList.add('on');
+  document.getElementById('q').setAttribute('aria-expanded', 'true');
+  syncActiveDescendant();
+}
+function syncActiveDescendant() {
+  const input = document.getElementById('q');
+  if (sugActive >= 0) input.setAttribute('aria-activedescendant', 'sug-opt-' + sugActive);
+  else input.removeAttribute('aria-activedescendant');
+}
+function paintActive() {
+  document.querySelectorAll('#suggest .s-item').forEach((el, i) => {
+    const on = i === sugActive;
+    el.classList.toggle('active', on);
+    el.setAttribute('aria-selected', on);
+  });
+  syncActiveDescendant();
+}
+function closeSuggest() {
+  const box = document.getElementById('suggest');
+  box.classList.remove('on'); box.innerHTML = '';
+  sugItems = []; sugActive = -1;
+  const input = document.getElementById('q');
+  input.setAttribute('aria-expanded', 'false');
+  input.removeAttribute('aria-activedescendant');
+}
+function showPopular() {
+  sugActive = -1; sugV = ''; sugHead = 'Popular searches';
+  sugItems = POPULAR.map(lbl => {
+    const hit = suggestIndex.find(s => s.label === lbl);
+    if (!hit) console.warn('POPULAR label has no taxonomy match:', lbl);
+    return hit;
+  }).filter(Boolean);
+  renderSuggest();
+}
+function showMatches(v) {
+  v = v.trim(); const lv = v.toLowerCase();
+  sugActive = -1; sugV = v; sugHead = 'Suggestions';
+  sugItems = suggestIndex
+    .filter(s => s.label.toLowerCase().includes(lv) || s.q.toLowerCase().includes(lv))
+    .slice(0, 8);
+  renderSuggest();
+}
+function acceptSuggest(i) {
+  const it = sugItems[i]; if (!it) return;
+  const input = document.getElementById('q');
+  input.value = it.q;
+  document.getElementById('clearx').style.display = 'block';
+  stopPlaceholder(); closeSuggest(); runSearch();
+}
+function suggestKeydown(e) {
+  const input = document.getElementById('q');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!sugItems.length) { input.value.trim() ? showMatches(input.value) : showPopular(); return; }
+    sugActive = (sugActive + 1) % sugItems.length; paintActive();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (!sugItems.length) return;
+    // From no selection (-1), go to the last item; otherwise step up and wrap.
+    sugActive = (sugActive <= 0 ? sugItems.length : sugActive) - 1; paintActive();
+  } else if (e.key === 'Enter') {
+    if (sugActive >= 0 && sugItems[sugActive]) { e.preventDefault(); acceptSuggest(sugActive); }
+    else runSearch();
+  } else if (e.key === 'Escape') {
+    closeSuggest();
+  }
+}
+
+function buildParams(cursor) {
+  const p = new URLSearchParams();
+  if (likeSeed) {
+    p.set('like', likeSeed.id);        // similarity mode: query/chips ignored, filters still apply
+  } else {
+    const q = document.getElementById('q').value.trim();
+    if (q) p.set('query', q);
+    selectedChips.forEach(c => p.append('chip', c));
+  }
+  const pmin = (document.getElementById('pmin')||{}).value;
+  const pmax = (document.getElementById('pmax')||{}).value;
+  if (pmin) p.set('price_min', pmin);
+  if (pmax) p.set('price_max', pmax);
+  p.set('available', availOnly ? '1' : '0');
+  if (cursor) p.set('cursor', cursor);
+  return p;
+}
+
+function starmarks(r) {
+  if (r == null) return '';
+  return '★'.repeat(Math.round(r)) + '☆'.repeat(5 - Math.round(r));
+}
+function esc(s) {
+  s = s == null ? '' : String(s);
+  const t = document.createElement('textarea');     // decode any entities the merchant pre-encoded
+  t.innerHTML = s; s = t.value;
+  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+// Merchant-supplied URLs are untrusted: only allow http(s), and return the
+// normalized href so quotes/spaces are percent-encoded (no attribute breakout).
+function safeUrl(u) {
+  if (!u) return '';
+  try {
+    const url = new URL(u, location.origin);
+    return (url.protocol === 'http:' || url.protocol === 'https:') ? url.href : '';
+  } catch { return ''; }
+}
+// Shopify's image CDN resizes via ?width=; request a card-sized image instead of
+// the full-res original (often 2000px). No-op for non-Shopify hosts. w=0 → tiny LQIP.
+function thumbUrl(u, w) {
+  if (!u) return u;
+  try {
+    const url = new URL(u);
+    if (/(^|\.)shopify\.com$/.test(url.hostname)) { url.searchParams.set('width', w); return url.href; }
+  } catch { /* fall through */ }
+  return w <= 24 ? '' : u;   // can't shrink a non-Shopify host: skip the LQIP, keep the full img
+}
+
+function skeletonHTML(n = 12) {
+  return `<article class="card sk" aria-hidden="true">
+    <div class="card-img"></div>
+    <div class="card-body">
+      <div class="sk-line sk-sm"></div>
+      <div class="sk-line sk-lg"></div>
+      <div class="sk-line sk-md"></div>
+    </div></article>`.repeat(n);
+}
+function cardHTML(c) {
+  // Merchant URLs are untrusted third-party data: validate scheme + normalize
+  // (blocks javascript: URIs and attribute-breakout chars) before using in href/src.
+  const imgSrc = safeUrl(c.img);
+  const full = thumbUrl(imgSrc, 500);      // card-sized image (not the 2000px original)
+  const lqip = thumbUrl(imgSrc, 20);       // tiny blurred placeholder (Shopify only, else '')
+  const pdpUrl = safeUrl(c.pdp), buyUrl = safeUrl(c.buy);
+  const link = pdpUrl || buyUrl || null;   // the merchant listing to open on image/title click
+  // data-full lets us mark already-loaded imgs as loaded on re-render (no fade flash)
+  // and drop 404'd imgs from the sorted set instead of resurrecting them.
+  const imgTag = imgSrc
+    ? `<img src="${full}" data-full="${full}" alt="${esc(c.title)}" loading="lazy"
+         class="${loadedImgs.has(full) ? 'loaded' : ''}" onload="imgLoaded(this)" onerror="imgFailed(this)">`
+    : '';
+  // Clicking the photo opens quick view (needs an id); no id → fall back to the merchant link.
+  const img = !imgTag
+    ? ''
+    : c.id
+      ? `<button class="card-img-link" type="button" data-qv="${c.id}" aria-label="Quick view: ${esc(c.title)}">${imgTag}</button>`
+      : link
+        ? `<a class="card-img-link" href="${link}" target="_blank" rel="noopener noreferrer" aria-label="${esc(c.title)}">${imgTag}</a>`
+        : imgTag;
+  const wished = c.id && wishIds.has(c.id);
+  const wishBtn = c.id
+    ? `<button class="wish${wished ? ' on' : ''}" type="button" data-id="${c.id}"
+         aria-pressed="${wished}" aria-label="${wished ? 'Remove from' : 'Save to'} your saved ${NOUNS}"
+         title="${wished ? 'Saved' : `Save this ${NOUN}`}">♥</button>`
+    : '';
+  // Buy-now CTA overlaid on the photo (was the quick-view button; quick view is now the photo click).
+  const buyOver = buyUrl
+    ? `<a class="buyover" href="${buyUrl}" target="_blank" rel="noopener noreferrer"
+         aria-label="Buy now: ${esc(c.title)}">Buy now</a>`
+    : '';
+  const cardImg = imgTag
+    ? `<div class="card-img${lqip ? ' lqip' : ''}"${lqip ? ` style="--lqip:url('${lqip}')"` : ''}>${img}${wishBtn}${buyOver}</div>`
+    : `<div class="card-img">${img}${wishBtn}${buyOver}</div>`;
+  const title = link
+    ? `<a class="name-link" href="${link}" target="_blank" rel="noopener noreferrer">${esc(c.title)}</a>`
+    : esc(c.title);
+  const pdp = pdpUrl ? `<a class="pdp" href="${pdpUrl}" target="_blank" rel="noopener noreferrer">View</a>` : '';
+  const mlt = c.id ? `<a class="mlt" href="#" data-id="${c.id}" data-title="${esc(c.title)}">More like this</a>` : '';
+  return `<article class="card">
+    ${cardImg}
+    <div class="card-body">
+      <div class="house">${esc(c.seller_name || '')}</div>
+      <div class="name">${title}</div>
+      <div class="price">${esc(c.price_display)}</div>
+      ${c.rating != null ? `<div class="rate">${starmarks(c.rating)}</div>` : ''}
+      <div class="links">${pdp}${mlt}</div>
+    </div>
+  </article>`;
+}
+
+// ----- Wishlist (saved items) -----
+function loadWishlist() {
+  try { const arr = JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]'); return Array.isArray(arr) ? arr : []; }
+  catch { return []; }
+}
+function saveWishlist() { try { localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist)); } catch { /* private mode / quota */ } }
+function wishCountHTML() {
+  return wishlist.length
+    ? `<b>${wishlist.length}</b> saved ${wishlist.length === 1 ? NOUN : NOUNS}`
+    : `No saved ${NOUNS} yet. Tap the ♥ on any ${NOUN} to save it here.`;
+}
+function updateSavedBtn() {
+  const label = '♥ Saved' + (wishlist.length ? ' · ' + wishlist.length : '');
+  ['savedbtn', 'msaved'].forEach(id => {          // desktop sticky-bar + mobile toolbar
+    const b = document.getElementById(id);
+    if (!b) return;
+    b.innerHTML = label;
+    b.setAttribute('aria-pressed', String(wishMode));
+    b.classList.toggle('on', wishMode);
+  });
+}
+function toggleWish(id) {
+  if (!id) return;
+  const i = wishlist.findIndex(c => c.id === id);
+  if (i >= 0) { wishlist.splice(i, 1); wishIds.delete(id); }
+  else {
+    const card = allCards.find(c => c.id === id) || wishlist.find(c => c.id === id);
+    if (!card) return;
+    wishlist.unshift(card); wishIds.add(id);        // newest first
+  }
+  saveWishlist();
+  updateSavedBtn();
+  const on = wishIds.has(id);                        // update this card's heart(s) in place
+  document.querySelectorAll(`.wish[data-id="${cssEsc(id)}"]`).forEach(b => {
+    b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
+  });
+  if (wishMode) {                                    // un-saving while viewing the list drops the card
+    renderGrid();
+    document.getElementById('count').innerHTML = wishCountHTML();
+    renderWishBanner();
+  }
+}
+function renderWishBanner() {
+  const bar = document.getElementById('wishbar');
+  if (wishMode) {
+    bar.innerHTML = `<span class="txt">Your <b>saved ${NOUNS}</b> (${wishlist.length})</span>
+      <button class="x" type="button" onclick="closeWishlist()">Back to search</button>`;
+    bar.classList.add('on');
+  } else { bar.innerHTML = ''; bar.classList.remove('on'); }
+}
+function openWishlist() {
+  if (wishMode) { closeWishlist(); return; }         // the Saved button toggles the view
+  wishMode = true;
+  exitLike();
+  nextCursor = null;                                 // finite list: no pagination / infinite scroll
+  document.getElementById('loadmore').style.display = 'none';
+  renderWishBanner();
+  updateSavedBtn();
+  renderGrid();
+  document.getElementById('count').innerHTML = wishCountHTML();
+  scrollToResults();
+}
+function closeWishlist() { wishMode = false; renderWishBanner(); updateSavedBtn(); refresh(); }
+function exitWish() { if (wishMode) { wishMode = false; renderWishBanner(); updateSavedBtn(); } }
+
+// ----- Quick view (modal + image gallery) -----
+// Opens instantly from the card snapshot (single search image), then fetches full
+// product detail (/api/product) to upgrade to the real gallery + longer description.
+let qvOpenId = null, qvCard = null, qvTrigger = null, qvGallery = [];
+function findCardById(id) {
+  return currentCards().find(c => c.id === id)
+      || allCards.find(c => c.id === id)
+      || wishlist.find(c => c.id === id) || null;
+}
+function openQuick(id) {
+  const card = findCardById(id);
+  if (!card) return;
+  qvCard = card; qvOpenId = id; qvTrigger = document.activeElement;
+  fillQuick(card);
+  const m = document.getElementById('qvmodal');
+  m.hidden = false; document.body.classList.add('modal-open');
+  document.querySelector('.modal-x').focus();
+  loadQuickDetail(id);
+}
+function fillQuick(c) {
+  document.getElementById('qv-house').textContent = c.seller_name || '';
+  document.getElementById('qv-title').textContent = c.title || '';
+  document.getElementById('qv-price').textContent = c.price_display || '';
+  document.getElementById('qv-rate').textContent = c.rating != null ? starmarks(c.rating) : '';
+  document.getElementById('qv-desc').textContent = c.desc || '';
+  renderQuickGallery(c.images && c.images.length ? c.images : (c.img ? [c.img] : []));
+  renderQuickActions(c);
+}
+function renderQuickGallery(images) {
+  qvGallery = images.map(safeUrl).filter(Boolean);
+  const thumbs = document.getElementById('qv-thumbs');
+  if (!qvGallery.length) { document.getElementById('qv-main').removeAttribute('src'); thumbs.innerHTML = ''; return; }
+  setQuickMain(0);
+  thumbs.innerHTML = qvGallery.length > 1
+    ? qvGallery.map((u, i) =>
+        `<button class="modal-thumb${i === 0 ? ' on' : ''}" type="button" data-i="${i}">
+           <img src="${thumbUrl(u, 120)}" alt="" loading="lazy"></button>`).join('')
+    : '';
+}
+function setQuickMain(idx) {
+  const url = qvGallery[idx]; if (!url) return;
+  const main = document.getElementById('qv-main');
+  main.src = thumbUrl(url, 900);
+  main.alt = (qvCard && qvCard.title) || '';
+  document.querySelectorAll('#qv-thumbs .modal-thumb').forEach((b, i) => b.classList.toggle('on', i === idx));
+}
+function renderQuickActions(c) {
+  const pdpUrl = safeUrl(c.pdp), buyUrl = safeUrl(c.buy);
+  const parts = [];
+  if (pdpUrl) parts.push(`<a class="pdp" href="${pdpUrl}" target="_blank" rel="noopener noreferrer">View at shop</a>`);
+  if (buyUrl) parts.push(`<a class="buy" href="${buyUrl}" target="_blank" rel="noopener noreferrer">Buy now</a>`);
+  if (c.id) parts.push(`<a class="mlt" data-qvmlt="${c.id}" data-title="${esc(c.title)}">More like this</a>`);
+  const on = c.id && wishIds.has(c.id);
+  parts.push(`<button class="wishbtn${on ? ' on' : ''}" type="button" data-qvwish="${c.id || ''}"
+    aria-pressed="${on}">${on ? '♥ Saved' : '♥ Save'}</button>`);
+  document.getElementById('qv-actions').innerHTML = parts.join('');
+}
+async function loadQuickDetail(id) {
+  try {
+    const d = await (await fetch('/api/product?id=' + encodeURIComponent(id))).json();
+    if (!d || d.error || qvOpenId !== id) return;      // modal closed or switched to another card
+    qvCard = { ...qvCard, images: d.images || qvCard.images, desc: d.desc || qvCard.desc };
+    if (d.images && d.images.length) renderQuickGallery(d.images);
+    if (d.desc) document.getElementById('qv-desc').textContent = d.desc;
+  } catch { /* keep the snapshot view */ }
+}
+function closeQuick() {
+  const m = document.getElementById('qvmodal');
+  if (m.hidden) return;
+  m.hidden = true; document.body.classList.remove('modal-open');
+  qvOpenId = null; qvCard = null; qvGallery = [];
+  if (qvTrigger && qvTrigger.focus) qvTrigger.focus();
+}
+(function initModal() {
+  const m = document.getElementById('qvmodal');
+  m.addEventListener('click', (e) => {
+    if (e.target.closest('[data-close]')) { closeQuick(); return; }
+    const t = e.target.closest('.modal-thumb');
+    if (t) { setQuickMain(+t.dataset.i); return; }
+    const w = e.target.closest('[data-qvwish]');
+    if (w) {
+      const id = w.dataset.qvwish; toggleWish(id);
+      const on = wishIds.has(id);
+      w.classList.toggle('on', on); w.setAttribute('aria-pressed', on);
+      w.textContent = on ? '♥ Saved' : '♥ Save';
+      return;
+    }
+    const ml = e.target.closest('[data-qvmlt]');
+    if (ml) { const id = ml.dataset.qvmlt, title = ml.dataset.title; closeQuick(); moreLikeThis(id, title); }
+  });
+  // Esc closes; Tab is trapped inside the dialog while open.
+  m.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeQuick(); return; }
+    if (e.key !== 'Tab') return;
+    const f = [...m.querySelectorAll('a[href],button,[tabindex]:not([tabindex="-1"])')].filter(el => el.offsetParent !== null);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+})();
+
+function imgLoaded(el) { el.classList.add('loaded'); if (el.dataset.full) loadedImgs.add(el.dataset.full); }
+function imgFailed(el) {
+  if (el.dataset.full) failedImgs.add(el.dataset.full);   // keep it out of future re-sorts
+  const card = el.closest('.card'); if (card) card.remove();
+}
+
+// Cards whose image loaded fine (backend already drops image-less listings; this
+// also filters ones that 404'd client-side so a re-sort doesn't bring them back).
+function visibleCards() {
+  return allCards.filter(c => {
+    const full = thumbUrl(safeUrl(c.img), 500);
+    return full && !failedImgs.has(full);
+  });
+}
+function sortCards(list) {
+  if (sortMode === 'relevance') return list;              // UCP's own order
+  const dir = sortMode === 'price-asc' ? 1 : -1;
+  return [...list].sort((a, b) => {                       // stable: ties keep relevance order
+    if (a.amount == null && b.amount == null) return 0;
+    if (a.amount == null) return 1;                       // priceless listings sink to the bottom
+    if (b.amount == null) return -1;
+    return (a.amount - b.amount) * dir;
+  });
+}
+function currentCards() { return wishMode ? wishlist : visibleCards(); }
+function renderGrid() {
+  document.getElementById('grid').innerHTML = sortCards(currentCards()).map(cardHTML).join('');
+}
+function onSortChange() {
+  sortMode = document.getElementById('sort').value;
+  renderGrid();
+  syncURL();
+}
+
+async function fetchPage(cursor, append) {
+  const count = document.getElementById('count'), grid = document.getElementById('grid');
+  loading = true;
+  document.getElementById('loadmore').style.display = 'none';
+  if (append) {
+    document.getElementById('morespin').style.display = 'flex';   // bottom loading indicator
+  } else {
+    allCards = [];
+    // Reserve the grid's space with skeleton cards so the layout doesn't collapse.
+    count.innerHTML = '<span class="spinner" aria-hidden="true"></span>Searching the archive…';
+    grid.innerHTML = skeletonHTML();
+  }
+  try {
+    let data;
+    try { data = await (await fetch('/api/search?' + buildParams(cursor).toString())).json(); }
+    catch (e) { if (!append) grid.innerHTML = ''; count.textContent = 'Could not reach the finder.'; return; }
+    if (data.error) { if (!append) grid.innerHTML = ''; count.textContent = data.error; return; }
+    const cards = data.cards || [];
+    allCards.push(...cards);
+    if (append && sortMode === 'relevance') {
+      grid.insertAdjacentHTML('beforeend', cards.map(cardHTML).join(''));  // flicker-free append
+    } else {
+      renderGrid();            // fresh search, or a sorted view where new cards must slot in order
+    }
+    nextCursor = data.next_cursor || null;
+    const shown = visibleCards().length;
+    const total = data.total_count != null ? data.total_count : shown;
+    lastTotal = total; updateSheetApply();          // label the mobile sheet's Apply button
+    count.innerHTML = (cards.length || append)
+      ? `<b>${shown}</b> of ${total} ${NOUNS}`
+      : `No ${NOUNS} match. Try a shorter term, a line, or a designer.`;
+    showLoadMore();
+  } finally {
+    loading = false;
+    document.getElementById('morespin').style.display = 'none';
+    maybeAutoLoad();          // if the sentinel is still in view (short page), keep filling
+  }
+}
+
+function scrollToResults() {
+  const el = document.querySelector('.controls');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+// ----- Shareable URL state: reflect query + chips + price + stock in the address bar -----
+function syncURL() {
+  const p = new URLSearchParams();
+  const q = document.getElementById('q').value.trim();
+  if (q) p.set('q', q);
+  selectedChips.forEach(c => p.append('chip', c));
+  const pmin = (document.getElementById('pmin') || {}).value;
+  const pmax = (document.getElementById('pmax') || {}).value;
+  if (pmin) p.set('price_min', pmin);
+  if (pmax) p.set('price_max', pmax);
+  if (!availOnly) p.set('available', '0');
+  if (sortMode !== 'relevance') p.set('sort', sortMode);
+  const qs = p.toString();
+  history.replaceState(null, '', qs ? '?' + qs : location.pathname);
+}
+function restoreStateFromURL() {
+  const p = new URLSearchParams(location.search);
+  const q = p.get('q');
+  if (q && q.trim()) {
+    document.getElementById('q').value = q.trim();
+    document.getElementById('clearx').style.display = 'block';
+    stopPlaceholder();
+  }
+  const chips = new Set(p.getAll('chip'));
+  if (chips.size) document.querySelectorAll('.chip').forEach(el => {
+    const cq = decodeURIComponent(el.dataset.q);
+    if (chips.has(cq)) { selectedChips.add(cq); el.classList.add('on'); }
+  });
+  const pmin = p.get('price_min'), pmax = p.get('price_max');
+  if (pmin && document.getElementById('pmin')) document.getElementById('pmin').value = pmin;
+  if (pmax && document.getElementById('pmax')) document.getElementById('pmax').value = pmax;
+  if (p.get('available') === '0') {
+    availOnly = false;
+    const pill = document.getElementById('availpill');
+    if (pill) pill.classList.remove('on');
+  }
+  const sort = p.get('sort');
+  if (sort === 'price-asc' || sort === 'price-desc') {
+    sortMode = sort;
+    const sel = document.getElementById('sort');
+    if (sel) sel.value = sort;
+  }
+  updateBadges();
+}
+function refresh() { exitWish(); syncURL(); fetchPage(null, false); }          // filter change — stay put
+function runSearch() { closeSuggest(); exitLike(); exitWish(); syncURL(); fetchPage(null, false); scrollToResults(); }  // header search — jump down
+function loadMore() { if (nextCursor && !loading) fetchPage(nextCursor, true); }
+
+// Show the manual "Show more" button when auto-load is off (or no observer support)
+// and there's another page to fetch.
+function showLoadMore() {
+  const show = nextCursor && (!infinite || !('IntersectionObserver' in window));
+  document.getElementById('loadmore').style.display = show ? 'block' : 'none';
+}
+// Toggle infinite scroll. Off lets the page bottom out so the footer is reachable;
+// a "Show more" button appears to fetch the rest by hand.
+function toggleInfinite() {
+  infinite = !infinite;
+  const p = document.getElementById('autopill');
+  p.classList.toggle('on', infinite);
+  p.setAttribute('aria-pressed', String(infinite));
+  showLoadMore();
+  if (infinite) maybeAutoLoad();     // resuming: fill immediately if the sentinel is in view
+}
+
+// ----- Mobile filter bottom-sheet -----
+let sheetPrevFocus = null;
+function updateSheetApply() {
+  const el = document.getElementById('sheetcount');
+  if (el) el.textContent = lastTotal ? `${lastTotal} ${lastTotal === 1 ? NOUN : NOUNS}` : NOUNS;
+}
+function openSheet() {
+  const c = document.querySelector('.controls'), sheet = document.getElementById('sheet');
+  sheetPrevFocus = document.activeElement;
+  c.classList.add('sheetopen');
+  document.getElementById('mfilters').setAttribute('aria-expanded', 'true');
+  sheet.setAttribute('aria-modal', 'true');
+  document.body.style.overflow = 'hidden';         // scroll-lock the page behind the sheet
+  updateSheetApply();
+  sheet.querySelector('.sheet-x').focus();
+}
+function closeSheet() {
+  const c = document.querySelector('.controls'), sheet = document.getElementById('sheet');
+  if (!c.classList.contains('sheetopen')) return;
+  c.classList.remove('sheetopen');
+  document.getElementById('mfilters').setAttribute('aria-expanded', 'false');
+  sheet.setAttribute('aria-modal', 'false');
+  document.body.style.overflow = '';
+  closeFacets();
+  if (sheetPrevFocus) { try { sheetPrevFocus.focus(); } catch (e) {} sheetPrevFocus = null; }
+}
+document.addEventListener('keydown', (e) => {
+  const c = document.querySelector('.controls');
+  if (!c || !c.classList.contains('sheetopen')) return;
+  if (e.key === 'Escape') { closeSheet(); return; }
+  if (e.key !== 'Tab') return;                      // focus trap inside the open sheet
+  const focusables = [...document.getElementById('sheet')
+    .querySelectorAll('a[href],button:not([disabled]),input,select,textarea,[tabindex]:not([tabindex="-1"])')]
+    .filter(el => el.offsetParent !== null);
+  if (!focusables.length) return;
+  const first = focusables[0], last = focusables[focusables.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
+
+// Infinite scroll: auto-load the next page as the sentinel nears the viewport.
+// maybeAutoLoad() keeps filling when a short page leaves the sentinel still on screen.
+function maybeAutoLoad() {
+  if (!nextCursor || loading || !infinite) return;
+  const s = document.getElementById('sentinel');
+  if (s && s.getBoundingClientRect().top < window.innerHeight + 200) loadMore();
+}
+if ('IntersectionObserver' in window) {
+  new IntersectionObserver((entries) => { if (entries[0].isIntersecting && infinite) loadMore(); },
+    { rootMargin: '600px 0px' }).observe(document.getElementById('sentinel'));
+}
+
+// delegate card clicks: heart (save) and "More like this" (cards re-render on every search)
+document.getElementById('grid').addEventListener('click', (e) => {
+  const w = e.target.closest('.wish');
+  if (w) { e.preventDefault(); e.stopPropagation(); toggleWish(w.dataset.id); return; }
+  const qv = e.target.closest('[data-qv]');
+  if (qv) { e.preventDefault(); openQuick(qv.dataset.qv); return; }
+  const a = e.target.closest('.mlt');
+  if (!a) return;
+  e.preventDefault();
+  moreLikeThis(a.dataset.id, a.dataset.title);
+});
+
+// removable active-filter pills (rebuilt on every filter change)
+document.getElementById('activefilters').addEventListener('click', (e) => {
+  const b = e.target.closest('.afpill'); if (!b) return;
+  if (b.dataset.kind === 'chip') {
+    const q = decodeURIComponent(b.dataset.q);
+    const el = [...document.querySelectorAll('.chip')].find(c => decodeURIComponent(c.dataset.q) === q);
+    if (el) toggleChip(el);          // untoggles the chip + refreshes (also re-renders these pills)
+  } else if (b.dataset.kind === 'price') {
+    const pmin = document.getElementById('pmin'), pmax = document.getElementById('pmax');
+    if (pmin) pmin.value = ''; if (pmax) pmax.value = '';
+    updateBadges(); refresh();
+  }
+});
+
+(function initSearchAssist() {
+  const input = document.getElementById('q');
+  input.addEventListener('keydown', suggestKeydown);
+  input.addEventListener('focus', () => {
+    stopPlaceholder();
+    input.value.trim() ? showMatches(input.value) : showPopular();
+  });
+  input.addEventListener('blur', () => setTimeout(() => {
+    if (document.activeElement === input) return;   // a fast re-focus reopened it; leave it
+    closeSuggest();
+    if (!input.value) startPlaceholder();
+  }, 140));
+  // mousedown (not click) so we act before the input's blur closes the panel
+  document.getElementById('suggest').addEventListener('mousedown', (e) => {
+    const b = e.target.closest('.s-item'); if (!b) return;
+    e.preventDefault();
+    acceptSuggest(+b.dataset.i);
+  });
+  // Don't animate the placeholder while the tab is hidden; resume when visible & idle.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopPlaceholder();
+    else if (document.activeElement !== input && !input.value) startPlaceholder();
+  });
+  startPlaceholder();
+})();
+
+// Init: build the filter bar first (chips must exist before we restore chip state
+// from the URL), then restore full state from ?q=/chip/price/available and search.
+(async function init() {
+  await loadTaxonomy();
+  restoreStateFromURL();
+  refresh();
+})();
+</script>
+</body>
+</html>

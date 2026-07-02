@@ -1,0 +1,93 @@
+# Retargeting Magpie to your hobby
+
+Magpie ships configured as DollScout, a collector-Barbie finder. Everything
+Barbie-specific lives in two places: `domain.py` (all of it) and six fenced
+`BRAND BLOCK` regions in `index.html`. Work through this checklist in order and
+you'll have your own finder running in an afternoon.
+
+## 1. `domain.py`: the config seam
+
+Every constant, with its DollScout value and what to change it to:
+
+| Constant | DollScout value | Change to |
+|---|---|---|
+| `SITE_NAME` | `"DollScout"` | Your site name (startup banner) |
+| `SITE_ORIGIN` | `https://www.dollscout.com` | Your canonical origin |
+| `REDIRECT_HOSTS` | dollscout.fly.dev, dollscout.com | Hostnames that 301 to the canonical origin |
+| `QUERY_ANCHOR` | `"Barbie"` | The word that keeps free-text queries on-topic. Prepended to any query that lacks it. Pick the term your niche always includes ("vinyl", "NES", "fountain pen") |
+| `DEFAULT_QUERY` | `"Barbie collector doll"` | What an empty search box searches |
+| `SEARCH_INTENT` | `"Barbie collector shopping"` | Sent as UCP `context.intent` |
+| `BRAND_TERMS` | `("barbie", "mattel")` | Relevance guard: a result is kept only if its title or description contains one of these. Lowercase substrings |
+| `BANNED_SELLERS` | `("sell4value",)` | Merchants to hide. Start empty: `()` |
+| `POPULAR_QUERIES` | 10 Barbie searches | Your niche's popular searches. Drives the sitemap, the suggestion dropdown seeds, and boot-time cache warming |
+| `DEEP_LINK_TITLE` / `DEEP_LINK_DESC` | Barbie phrasing | `<title>`/description templates for `/?q=` deep-links. Keep the `{q}` placeholder |
+| `DEFAULT_META_TITLE` | DollScout og:title | See the coupling trap below |
+| `TAXONOMY` | Barbie chip vocabulary | Your niche's filter chips: groups of `{"label", "q"}` where `q` is appended to the query. Dict order = display order |
+
+## 2. `index.html`: six fenced brand blocks
+
+Search the file for `BRAND BLOCK`. Each region is paired with a closing fence:
+
+1. **SEO head**: `<title>`, meta description, OG/Twitter tags, JSON-LD (site name,
+   description, publisher organization). Replace every DollScout/Barbie/Ethercycle value.
+2. **Welcome mat + hero**: wordmark (`Doll<em>Scout</em>`), tagline, search placeholder.
+3. **About / What & Why**: the project story and trademark disclaimer. Rewrite for
+   your niche and your operator.
+4. **Footer**: wordmark, tagline, operator copyright, trademark note.
+5. **JS brand constants**: `NOUN`/`NOUNS` (the item word used in every count, wishlist
+   message, and aria-label: "doll"/"dolls" → "record"/"records") and `WISHLIST_KEY`
+   (namespace it to your site so localStorage doesn't collide).
+6. **Suggestion + placeholder copy**: `POPULAR` (labels must match `TAXONOMY` labels or
+   chips in `domain.py`), `PH_EXAMPLES` (typewriter placeholder examples), `BASE_PH`.
+
+One unfenced straggler, an intentional static fallback that JS overwrites at runtime;
+change it to match your `NOUNS`:
+
+- the mobile sheet apply button: `Show <span id="sheetcount">dolls</span>`
+
+Theme: the `:root` CSS custom-property palette (top of the `<style>` block) and the
+Google Fonts `<link>` (Fraunces + Archivo) are your visual levers. Not fenced because
+they're taste, not brand strings.
+
+## 3. The coupling trap (read this one)
+
+`app.py` injects per-query social meta for `/?q=` deep-links by find-and-replacing the
+og:title string. That means:
+
+> `DEFAULT_META_TITLE` in `domain.py` must **exactly** match the `content` attribute of
+> the `og:title` and `twitter:title` tags in `index.html`.
+
+If you edit one and not the other, nothing errors: deep-link og:title just silently
+stops updating. After any head edit, verify with:
+
+```sh
+PORT=8791 WARM_CACHE=0 python3 app.py &
+curl -s "http://127.0.0.1:8791/?q=test" | grep 'og:title'
+# expect: content="test — ..." (your DEEP_LINK_TITLE), not your default title
+```
+
+## 4. Replace the DollScout assets
+
+These ship as DollScout's real files and MUST be replaced before you deploy:
+
+- **`privacy.html` / `terms.html`**: DollScout's actual legal pages, naming its actual
+  operator (Ethercycle LLC). Rewrite them for your operator and brand, or delete the
+  `/privacy` and `/terms` routes in `app.py` and the footer links in `index.html`.
+- **`og-image.png`**: 1200×630 social share card.
+
+## 5. `fly.toml`
+
+Change `app = 'dollscout'` to your Fly app name, or delete `fly.toml` and re-run
+`fly launch`. Then update `SITE_ORIGIN`/`REDIRECT_HOSTS` in `domain.py` (step 1)
+to match.
+
+## 6. Final sweep
+
+Nothing brand-specific should survive outside your own copy:
+
+```sh
+grep -niE 'doll|barbie|mattel|ethercycle|dollscout' app.py domain.py index.html
+```
+
+After a full retarget the only acceptable hit is `app.py`'s module docstring, which
+describes what the template ships as. Everything else should be your own copy.
