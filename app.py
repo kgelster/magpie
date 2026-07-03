@@ -36,6 +36,7 @@ UCP_MAX_CONCURRENCY = 4                 # cap simultaneous ucp processes (server
 _ucp_slots = threading.BoundedSemaphore(UCP_MAX_CONCURRENCY)
 RATE_LIMIT_MAX = 20                     # max searches per client IP...
 RATE_LIMIT_WINDOW = 60                  # ...per this many seconds
+RATE_IPS_MAX = 4096                     # sweep idle IPs past this (bounds memory vs. IP rotation)
 _rate_lock = threading.Lock()
 _rate_hits = defaultdict(deque)         # ip -> deque[monotonic timestamps]
 
@@ -59,6 +60,9 @@ def _rate_ok(ip):
     now = time.monotonic()
     cutoff = now - RATE_LIMIT_WINDOW
     with _rate_lock:
+        if len(_rate_hits) > RATE_IPS_MAX:
+            for idle in [k for k, v in _rate_hits.items() if not v or v[-1] < cutoff]:
+                del _rate_hits[idle]
         dq = _rate_hits[ip]
         while dq and dq[0] < cutoff:
             dq.popleft()
