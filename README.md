@@ -41,6 +41,17 @@ The model is search-and-referral only. Result cards link out to each merchant's 
 product and buy-now pages. Magpie never builds carts, never takes payment, holds no
 inventory.
 
+## Sponsored results
+
+DollScout has no sponsors: no seller pays for placement, and results are shown in
+the order UCP returns them. The template still ships the disclosure mechanism, and
+using it is the rule, not a suggestion: **if your deployment has a paid, affiliate,
+or other material relationship with a seller, list them in `SPONSORED_SELLERS`
+(`domain.py`) and their results get a visible "Sponsored" label** on every result
+card and in quick view. Sponsorship never changes ranking or filtering; the label
+is pure disclosure. Running a finder that takes money from sellers without labeling
+their results is deceptive (and in most jurisdictions, illegal): don't strip this.
+
 ## Features
 
 The engine is small but production-hardened (it runs dollscout.com):

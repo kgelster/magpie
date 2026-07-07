@@ -19,6 +19,7 @@ Every constant, with its DollScout value and what to change it to:
 | `SEARCH_INTENT` | `"Barbie collector shopping"` | Sent as UCP `context.intent` |
 | `BRAND_TERMS` | `("barbie", "mattel")` | Relevance guard: a result is kept only if its title or description contains one of these. Lowercase substrings |
 | `BANNED_SELLERS` | `("sell4value",)` | Merchants to hide. Start empty: `()` |
+| `SPONSORED_SELLERS` | `()` | Sellers with a paid/affiliate/material relationship to YOUR deployment. Their results get a visible "Sponsored" label (never a ranking change). Labeling paid relationships is mandatory, not optional |
 | `POPULAR_QUERIES` | 10 Barbie searches | Your niche's popular searches. Drives the sitemap, the suggestion dropdown seeds, and boot-time cache warming |
 | `DEEP_LINK_TITLE` / `DEEP_LINK_DESC` | Barbie phrasing | `<title>`/description templates for `/?q=` deep-links. Keep the `{q}` placeholder |
 | `DEFAULT_META_TITLE` | DollScout og:title | See the coupling trap below |

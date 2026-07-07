@@ -307,6 +307,22 @@ def _seller_banned(seller):
     return any(b in hay for b in domain.BANNED_SELLERS)
 
 
+def _seller_sponsored(seller):
+    """True if this seller is on the sponsored-disclosure list (same matching
+    as _seller_banned). Drives the mandatory "Sponsored" label; never ranking."""
+    if not domain.SPONSORED_SELLERS:
+        return False
+    parts = [seller.get("domain") or "", seller.get("name") or ""]
+    url = seller.get("url") or ""
+    if url:
+        try:
+            parts.append(urlparse(url).hostname or "")
+        except ValueError:
+            pass
+    hay = " ".join(parts).lower()
+    return any(s in hay for s in domain.SPONSORED_SELLERS)
+
+
 def _card_from_product(p):
     """One UCP product -> card dict, or None if it carries no image or its seller
     is banned.
@@ -340,6 +356,7 @@ def _card_from_product(p):
         "images": images[:8],       # quick-view gallery (capped)
         "rating": (p.get("rating") or {}).get("value"),
         "desc": desc_full[:600],
+        "sponsored": _seller_sponsored(seller),
     }
 
 

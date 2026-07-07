@@ -43,6 +43,15 @@ BRAND_TERMS = ("barbie", "mattel")
 # display name. Curate per deployment; empty tuple disables the filter.
 BANNED_SELLERS = ("sell4value",)
 
+# Sponsored-seller disclosure: any seller with a paid, affiliate, or other
+# material relationship to this deployment MUST be listed here. Matching works
+# exactly like BANNED_SELLERS (lowercase substring vs. domain, custom-domain
+# host, and name). Matched results get a visible "Sponsored" label on the card
+# and in quick view. Labeling is the ONLY effect — sponsorship never changes
+# ranking or filtering. If you take money from a seller and don't list them
+# here, you're deceiving your users. DollScout has no sponsors; empty tuple.
+SPONSORED_SELLERS = ()
+
 # Popular searches surfaced as indexable deep-links (/?q=...) so Google can
 # crawl them. Also pre-warmed into the search cache at boot.
 POPULAR_QUERIES = [
