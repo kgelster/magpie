@@ -342,8 +342,15 @@ def _card_from_product(p):
     if not images:
         return None
     desc_full = (p.get("description") or {}).get("plain") or ""
+    # `id` is interpolated into HTML attributes client-side; only accept a real
+    # Shopify GID so a malformed/hostile id can't break out of the attribute
+    # (same guard as run_ucp_get_product). A dropped id degrades gracefully: the
+    # card still renders, it just loses quick-view/wishlist/more-like-this.
+    pid = p.get("id")
+    if not (isinstance(pid, str) and _PRODUCT_ID_RE.match(pid)):
+        pid = None
     return {
-        "id": p.get("id"),
+        "id": pid,
         "title": p.get("title") or "Untitled",
         "seller_name": seller.get("name") or seller.get("domain") or "Unknown seller",
         "seller_domain": seller.get("domain"),
