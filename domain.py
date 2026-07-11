@@ -56,15 +56,17 @@ SPONSORED_SELLERS = ()
 # crawl them. Also pre-warmed into the search cache at boot, and mirrored in
 # index.html's POPULAR (brand block 6) for the try-bar + suggestion dropdown —
 # keep the two lists in sync.
-# Reworked 2026-07-11: infamous/funny dolls (the Barbie-movie "discontinued"
-# gags plus classic oddballs), each verified against live catalog results
-# (the real doll appears in the top 10). "Video Girl Barbie" tested 0 hits
-# and was cut; "Share a Smile Becky" (8/10 top-10) took its slot.
+# ACCURACY BAR (2026-07-11): every entry here (and every PH_EXAMPLES string)
+# must score >=9/10 relevant in the top 10 live results — marker text present
+# AND not merch (Funko/ornament/costume/apparel). The fun "weird doll" list
+# (Weird Barbie, Earring Magic Ken, Tanner...) was tried and failed this bar:
+# thin inventory means costumes, Funkos, and generic backfill crowd the top.
+# Anything that demos badly gets cut, no matter how good the joke is.
 POPULAR_QUERIES = [
-    "Weird Barbie", "Growing Up Skipper", "Earring Magic Ken", "Sugar Daddy Ken",
-    "Allan doll", "Pregnant Midge", "Tanner dog Barbie", "Teen Talk Barbie",
-    "Totally Hair Barbie", "Rollerblade Barbie", "Share a Smile Becky",
-    "Bob Mackie Barbie",
+    "Ponytail Barbie", "Bubble Cut Barbie", "Enchanted Evening Barbie",
+    "Twist N Turn Barbie", "Malibu Barbie 1971", "Day to Night Barbie",
+    "Totally Hair Barbie", "Happy Holidays Barbie 1995", "Holiday Barbie",
+    "Silkstone Fashion Model", "Birthday Wishes Barbie", "Bob Mackie Barbie",
 ]
 
 # --- SEO meta for /?q= deep-links -------------------------------------------

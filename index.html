@@ -1024,12 +1024,14 @@ function clearQuery() {
 // ═══ BRAND BLOCK 6/6: suggestion + placeholder copy ═══
 // POPULAR entries are free-text searches, run verbatim (keep in sync with
 // domain.py POPULAR_QUERIES so the try-bar matches the sitemap deep-links).
-const POPULAR = ["Weird Barbie", "Growing Up Skipper", "Earring Magic Ken",
-  "Sugar Daddy Ken", "Allan doll", "Pregnant Midge", "Tanner dog Barbie",
-  "Teen Talk Barbie", "Totally Hair Barbie", "Rollerblade Barbie",
-  "Share a Smile Becky", "Bob Mackie Barbie"];
-const PH_EXAMPLES = ["Bob Mackie evening gown…", "1977 SuperStar Barbie…",
-  "Holiday Barbie 1988…", "Silkstone Fashion Model…", "Earring Magic Ken…"];
+// Every POPULAR and PH_EXAMPLES string must clear the >=9/10 top-10 accuracy
+// bar documented at domain.py POPULAR_QUERIES before it ships.
+const POPULAR = ["Ponytail Barbie", "Bubble Cut Barbie", "Enchanted Evening Barbie",
+  "Twist N Turn Barbie", "Malibu Barbie 1971", "Day to Night Barbie",
+  "Totally Hair Barbie", "Happy Holidays Barbie 1995", "Holiday Barbie",
+  "Silkstone Fashion Model", "Birthday Wishes Barbie", "Bob Mackie Barbie"];
+const PH_EXAMPLES = ["Bob Mackie evening gown…", "Happy Holidays Barbie 1995…",
+  "Silkstone Fashion Model…", "Malibu Barbie 1971…", "Twist N Turn Barbie…"];
 const BASE_PH = "Search by name, line, designer, or era";
 // ═══ /BRAND BLOCK 6/6 ═══
 const REDUCE_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
