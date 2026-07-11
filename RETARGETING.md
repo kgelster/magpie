@@ -20,7 +20,7 @@ Every constant, with its DollScout value and what to change it to:
 | `BRAND_TERMS` | `("barbie", "mattel")` | Relevance guard: a result is kept only if its title or description contains one of these. Lowercase substrings |
 | `BANNED_SELLERS` | `("sell4value",)` | Merchants to hide. Start empty: `()` |
 | `SPONSORED_SELLERS` | `()` | Sellers with a paid/affiliate/material relationship to YOUR deployment. Their results get a visible "Sponsored" label (never a ranking change). Labeling paid relationships is mandatory, not optional |
-| `POPULAR_QUERIES` | 10 Barbie searches | Your niche's popular searches. Drives the sitemap, the suggestion dropdown seeds, and boot-time cache warming |
+| `POPULAR_QUERIES` | 12 Barbie searches | Your niche's popular searches (free text). Drives the sitemap, the suggestion dropdown seeds, and boot-time cache warming. Mirror the same list in `POPULAR` (block 6) |
 | `DEEP_LINK_TITLE` / `DEEP_LINK_DESC` | Barbie phrasing | `<title>`/description templates for `/?q=` deep-links. Keep the `{q}` placeholder |
 | `DEFAULT_META_TITLE` | DollScout og:title | See the coupling trap below |
 | `NOT_FOUND_HEADING` / `NOT_FOUND_BODY` / `NOT_FOUND_CTA` | Hunt-themed 404 copy | Your niche's 404 page copy (app.py wraps these in a styled page) |
@@ -46,8 +46,9 @@ Search the file for `BRAND BLOCK`. Each region is paired with a closing fence:
    she/her and hunt-flavored; rewrite for your niche's vocabulary), the `console.log`
    easter egg, and `WISHLIST_KEY` (namespace it to your site so localStorage doesn't
    collide).
-6. **Suggestion + placeholder copy**: `POPULAR` (labels must match `TAXONOMY` labels or
-   chips in `domain.py`), `PH_EXAMPLES` (typewriter placeholder examples), `BASE_PH`.
+6. **Suggestion + placeholder copy**: `POPULAR` (free-text searches, run verbatim; keep
+   in sync with `POPULAR_QUERIES` in `domain.py` — the try-bar samples 4 of them at
+   random per page load), `PH_EXAMPLES` (typewriter placeholder examples), `BASE_PH`.
 
 One unfenced straggler, an intentional static fallback that JS overwrites at runtime;
 change it to match your `NOUNS`:

@@ -1021,12 +1021,15 @@ function clearQuery() {
 }
 
 // ----- Search assist: typewriter placeholder + suggestions / autocomplete -----
-// Vocabulary is the taxonomy already served to the page — no invented data.
-// ═══ BRAND BLOCK 6/6: suggestion + placeholder copy (labels must match domain.py TAXONOMY) ═══
-const POPULAR = ["Holiday Barbie", "Bob Mackie", "Silkstone / Fashion Model",
-  "1990s", "NRFB", "Dolls of the World"];
+// ═══ BRAND BLOCK 6/6: suggestion + placeholder copy ═══
+// POPULAR entries are free-text searches, run verbatim (keep in sync with
+// domain.py POPULAR_QUERIES so the try-bar matches the sitemap deep-links).
+const POPULAR = ["Weird Barbie", "Growing Up Skipper", "Earring Magic Ken",
+  "Sugar Daddy Ken", "Allan doll", "Pregnant Midge", "Tanner dog Barbie",
+  "Teen Talk Barbie", "Totally Hair Barbie", "Rollerblade Barbie",
+  "Share a Smile Becky", "Bob Mackie Barbie"];
 const PH_EXAMPLES = ["Bob Mackie evening gown…", "1977 SuperStar Barbie…",
-  "Holiday Barbie 1988…", "Silkstone Fashion Model…", "Byron Lars Cinnabar…"];
+  "Holiday Barbie 1988…", "Silkstone Fashion Model…", "Earring Magic Ken…"];
 const BASE_PH = "Search by name, line, designer, or era";
 // ═══ /BRAND BLOCK 6/6 ═══
 const REDUCE_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1093,11 +1096,8 @@ function closeSuggest() {
 }
 function showPopular() {
   sugActive = -1; sugV = ''; sugHead = 'Popular searches';
-  sugItems = POPULAR.map(lbl => {
-    const hit = suggestIndex.find(s => s.label === lbl);
-    if (!hit) console.warn('POPULAR label has no taxonomy match:', lbl);
-    return hit;
-  }).filter(Boolean);
+  // Free-text searches, not taxonomy chips — run verbatim (top 8 fit the box).
+  sugItems = POPULAR.slice(0, 8).map(s => ({ label: s, q: s, group: 'Popular' }));
   renderSuggest();
 }
 function showMatches(v) {
@@ -1665,15 +1665,19 @@ document.getElementById('activefilters').addEventListener('click', (e) => {
   startPlaceholder();
 })();
 
-// Hero try-bar: the first 4 POPULAR searches as one-tap chips, plus a surprise-me
-// dice that runs a random taxonomy query. Built after loadTaxonomy (needs suggestIndex).
+// Hero try-bar: 4 POPULAR searches sampled at random each load (the pool is
+// bigger than the bar, so repeat visitors see different bait), plus a
+// surprise-me dice that runs a random taxonomy query.
 function buildTryBar() {
   const bar = document.getElementById('trybar');
   if (!bar) return;
-  const chips = POPULAR.slice(0, 4).map(lbl => {
-    const hit = suggestIndex.find(s => s.label === lbl);
-    return hit ? `<button type="button" class="trychip" data-q="${encodeURIComponent(hit.q)}">${esc(lbl)}</button>` : '';
-  }).join('');
+  const pool = [...POPULAR];
+  for (let i = pool.length - 1; i > 0; i--) {          // Fisher-Yates shuffle
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  const chips = pool.slice(0, 4).map(q =>
+    `<button type="button" class="trychip" data-q="${encodeURIComponent(q)}">${esc(q)}</button>`).join('');
   bar.innerHTML = `<span class="try-lead">Try</span>${chips}
     <button type="button" class="trychip dice" id="dicechip">${LABEL_SURPRISE}</button>`;
   bar.addEventListener('click', (e) => {
