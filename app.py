@@ -114,6 +114,7 @@ def cache_put(key, payload):
 _stats_lock = threading.Lock()
 _stats = {"hits": 0, "misses": 0, "match_cards": 0, "total_cards": 0}
 _latencies = deque(maxlen=500)          # recent ucp (cache-miss) search durations, ms
+_unmatched = {}                         # search term -> count of zero-badge result sets (census queue)
 
 
 def record_hit():
@@ -139,6 +140,7 @@ def stats_snapshot():
     with _stats_lock:
         hits, misses, lat = _stats["hits"], _stats["misses"], list(_latencies)
         match_cards, total_cards = _stats["match_cards"], _stats["total_cards"]
+        unmatched_top = sorted(_unmatched.items(), key=lambda kv: -kv[1])[:10]
     total = hits + misses
     return {
         "cache_hits": hits,
@@ -152,6 +154,9 @@ def stats_snapshot():
         "match_cards": match_cards,
         "total_cards": total_cards,
         "match_rate": round(match_cards / total_cards, 3) if total_cards else None,
+        # Search terms whose results carried zero badges, seen 2+ times: the
+        # census backlog ranked by real demand. In-memory (resets on deploy).
+        "unmatched_top": [{"q": k, "n": v} for k, v in unmatched_top if v >= 2],
     }
 ROBOTS_TXT = (
     "User-agent: *\n"
@@ -163,9 +168,19 @@ ROBOTS_TXT = (
 
 def _build_sitemap():
     rows = [f"  <url><loc>{domain.SITE_ORIGIN}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>"]
+    seen = set(domain.POPULAR_QUERIES)
     for term in domain.POPULAR_QUERIES:
         loc = f"{domain.SITE_ORIGIN}/?q={quote(term)}"
         rows.append(f"  <url><loc>{loc}</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>")
+    # Canonical reference-catalog deep-links (curated records only — auto-created
+    # stubs stay out so a breadth census can't flood the sitemap with thin pages).
+    if _MATCH:
+        for r in sorted(_MATCH["recs"].values(), key=lambda r: r["name"]):
+            if not r["name"] or r["name"] in seen or r["lifecycle"] == "stub":
+                continue
+            seen.add(r["name"])
+            loc = f"{domain.SITE_ORIGIN}/?q={quote(r['name'])}"
+            rows.append(f"  <url><loc>{loc}</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>")
     for path in ("/privacy", "/terms"):
         rows.append(f"  <url><loc>{domain.SITE_ORIGIN}{path}</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>")
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -173,7 +188,6 @@ def _build_sitemap():
             + "\n".join(rows) + "\n</urlset>\n")
 
 
-SITEMAP_XML = _build_sitemap()
 INDEX_PATH = os.path.join(HERE, "index.html")
 
 # Styled 404 (copy lives in domain.py; palette mirrors index.html's :root).
@@ -279,6 +293,9 @@ def _load_match_index(path=MATCH_INDEX_DIR):
             "name": name,
             "stock": m.get("stock_number"),
             "year": year,
+            "line": m.get("line"),
+            "slug": m.get("seo_slug"),
+            "lifecycle": m.get("lifecycle"),
             # Name words that actually identify the record (brand/stop words and
             # the year dropped) — the corroboration a bare stock number needs.
             "sig": frozenset(_match_tokens(name) - stop - {year}),
@@ -310,15 +327,38 @@ def _suggest_entries():
         if not r["name"] or r["name"] in seen:
             continue
         seen.add(r["name"])
-        entries.append({"label": r["name"], "q": r["name"], "alt": r["stock"] or ""})
+        entries.append({"label": r["name"], "q": r["name"], "alt": r["stock"] or "",
+                        "line": r["line"] or "", "year": r["year"] or ""})
     return entries
 
 
+def _build_llms_txt():
+    """/llms.txt (llmstxt.org convention): domain.LLMS_INTRO plus one line per
+    curated catalog record linking to its live search deep-link."""
+    out = domain.LLMS_INTRO.rstrip() + "\n"
+    rows = []
+    if _MATCH:
+        for r in sorted(_MATCH["recs"].values(), key=lambda r: r["name"]):
+            if not r["name"] or r["lifecycle"] == "stub":
+                continue
+            facts = ", ".join(x for x in (str(r["year"] or ""), r["line"] and f"{r['line']} line",
+                                          r["stock"] and f"stock #{r['stock']}") if x)
+            row = f"- [{r['name']}]({domain.SITE_ORIGIN}/?q={quote(r['name'])})" + (f": {facts}" if facts else "")
+            if row not in rows:                      # variants sharing a name keep the first row
+                rows.append(row)
+    if rows:
+        out += f"\n## {domain.LLMS_CATALOG_HEADING}\n\n" + "\n".join(rows) + "\n"
+    return out
+
+
+# Built after the matcher loads: both walk the reference catalog.
 SUGGEST_ENTRIES = _suggest_entries()
+SITEMAP_XML = _build_sitemap()
+LLMS_TXT = _build_llms_txt()
 
 
-def match_reference(title, desc=""):
-    """The reference entry this listing matches -> badge text "name #stock", or None."""
+def _match_record(title, desc=""):
+    """Id of the reference entry this listing matches, or None."""
     if not _MATCH:
         return None
     title_norm = _match_norm(title)
@@ -335,13 +375,39 @@ def match_reference(title, desc=""):
             if (r["year"] and r["year"] in all_toks) or (r["sig"] and r["sig"] <= all_toks):
                 stock_ids.append(rid)
     # Alias + stock agreement beats alias alone beats stock alone.
-    rid = (next((i for i in alias_ids if i in stock_ids), None)
-           or (alias_ids[0] if alias_ids else None)
-           or (stock_ids[0] if stock_ids else None))
-    if not rid:
-        return None
-    r = _MATCH["recs"][rid]
-    return f"{r['name']} #{r['stock']}" if r["stock"] else r["name"]
+    return (next((i for i in alias_ids if i in stock_ids), None)
+            or (alias_ids[0] if alias_ids else None)
+            or (stock_ids[0] if stock_ids else None))
+
+
+def _badge(rec):
+    return f"{rec['name']} #{rec['stock']}" if rec["stock"] else rec["name"]
+
+
+def match_reference(title, desc=""):
+    """The reference entry this listing matches -> badge text "name #stock", or None."""
+    rid = _match_record(title, desc)
+    return _badge(_MATCH["recs"][rid]) if rid else None
+
+
+def _expand_stock_query(q):
+    """A query containing a stock number that maps to exactly one catalog record
+    gets that record's name appended ("1703 barbie" also searches "1988 Happy
+    Holidays Barbie Doll") — the live catalog understands names, not numbers.
+    Expands only on a single unambiguous hit whose name isn't already typed."""
+    if not _MATCH or not q:
+        return q
+    toks = _match_tokens(q)
+    names = []
+    for t in toks:
+        ids = _MATCH["stock"].get(t, ())
+        if len(ids) == 1:
+            r = _MATCH["recs"][ids[0]]
+            if r["name"] and not (r["sig"] and r["sig"] <= toks):
+                names.append(r["name"])
+    if len(names) == 1:
+        return f"{q} {names[0]}"
+    return q
 
 
 # ---------------------------------------------------------------------------
@@ -381,6 +447,7 @@ def build_ucp_input(query="", chips=None, price_min=None, price_max=None,
         return {"like": [{"id": like}], "context": context,
                 "filters": filters, "pagination": pagination}
 
+    query = _expand_stock_query(query)      # "1703 barbie" also searches the doll's name
     chips = [c for c in (chips or []) if c and c.strip()]
     terms = [t for t in ([query] + chips) if t and t.strip()]
     full_query = " ".join(terms).strip() or domain.DEFAULT_QUERY
@@ -473,6 +540,8 @@ def _card_from_product(p):
     pid = p.get("id")
     if not (isinstance(pid, str) and _PRODUCT_ID_RE.match(pid)):
         pid = None
+    rid = _match_record(p.get("title") or "", desc_full)
+    rec = _MATCH["recs"][rid] if rid else None
     return {
         "id": pid,
         "title": p.get("title") or "Untitled",
@@ -488,7 +557,11 @@ def _card_from_product(p):
         "rating": (p.get("rating") or {}).get("value"),
         "desc": desc_full[:600],
         "sponsored": _seller_sponsored(seller),
-        "matched": match_reference(p.get("title") or "", desc_full),
+        "matched": _badge(rec) if rec else None,
+        "matched_line": rec["line"] if rec else None,          # powers the quick-view line rail
+        "matched_page": (domain.REFERENCE_PAGE_BASE + rec["slug"]
+                         if rec and rec["slug"] and domain.REFERENCE_PAGE_BASE
+                         else None),                           # badge link once reference pages ship
     }
 
 
@@ -554,12 +627,28 @@ def run_ucp_search(input_dict, timeout=UCP_TIMEOUT):
         return {"error": "Search failed. Please try again."}
 
 
+def _note_unmatched(query, cards):
+    """Count search terms whose (non-empty) results carried zero matched badges:
+    the census backlog, ranked by real demand. Bounded, in-memory, surfaces at
+    /api/stats once a term has been seen twice."""
+    if not (_MATCH and cards and query):
+        return
+    term = " ".join(query.split()).lower()[:60]
+    if not term or "@" in term or any(c.get("matched") for c in cards):
+        return
+    with _stats_lock:
+        if term in _unmatched or len(_unmatched) < 500:
+            _unmatched[term] = _unmatched.get(term, 0) + 1
+
+
 def search(params):
     """Glue: params dict -> normalized payload or {error}."""
     raw = run_ucp_search(build_ucp_input(**params))
     if isinstance(raw, dict) and raw.get("error"):
         return raw
-    return normalize(raw)
+    result = normalize(raw)
+    _note_unmatched(params.get("query"), result["cards"])
+    return result
 
 
 # Product GIDs are the only accepted id (they're passed as a subprocess arg, so this
@@ -734,6 +823,8 @@ class Handler(BaseHTTPRequestHandler):
                             cache_control="public, max-age=3600")
         elif route == "/robots.txt":
             self._send_text(ROBOTS_TXT, cache_control="public, max-age=3600")
+        elif route == "/llms.txt":
+            self._send_text(LLMS_TXT, cache_control="public, max-age=3600")
         elif route == "/sitemap.xml":
             self._send_text(SITEMAP_XML, "application/xml; charset=utf-8",
                             cache_control="public, max-age=3600")

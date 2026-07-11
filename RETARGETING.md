@@ -28,6 +28,8 @@ Every constant, with its DollScout value and what to change it to:
 | `NOT_FOUND_HEADING` / `NOT_FOUND_BODY` / `NOT_FOUND_CTA` | Hunt-themed 404 copy | Your niche's 404 page copy (app.py wraps these in a styled page) |
 | `TAXONOMY` | Barbie chip vocabulary | Your niche's filter chips: groups of `{"label", "q"}` where `q` is appended to the query. Dict order = display order |
 | `MATCH_STOPWORDS` | `("barbie", "mattel", "doll", ...)` | Only used with the optional reference match index (README §"Reference match index"): name words too generic to corroborate a stock-number match |
+| `REFERENCE_PAGE_BASE` | `""` | Base path for matched-badge links to per-record reference pages; `""` keeps badges plain text |
+| `LLMS_INTRO` / `LLMS_CATALOG_HEADING` | DollScout intro + disclaimer | Served at `/llms.txt`; the reference-catalog section is appended automatically when a match index is loaded |
 | `MATCH_NEGATIVE_TERMS` | `("ornament", "figurine", "mug", ...)` | Titles containing these never get a matched badge — merchandise *about* an item, not the item. Also match-index only |
 
 If you maintain a structured catalog of your niche's items, see the README's

@@ -149,6 +149,23 @@ canonical record (name + stock number as a hidden search alias), and the search 
 merges them into its dropdown under a catalog group tag — typing a stock number like
 `1703` surfaces the doll it belongs to.
 
+Beyond badges and autocomplete, a loaded catalog switches on:
+
+- **Query expansion** — a search containing an unambiguous stock number also
+  searches that record's name ("1703" alone finds the 1988 Happy Holidays doll).
+- **Zero-results rescue** — a dead query gets up to three "Try:" chips fuzzy-matched
+  from the catalog and taxonomy.
+- **"Collect the line" rail** — quick view of a matched item links to its line-mates
+  as one-click searches.
+- **Sitemap deep-links** — every curated (non-stub) record adds its `/?q=` search to
+  `sitemap.xml`.
+- **`/llms.txt`** — `domain.LLMS_INTRO` plus a generated catalog section, one linked
+  line per record (llmstxt.org convention).
+- **Census queue** — `/api/stats` lists `unmatched_top`, the search terms (seen 2+
+  times) whose results carried zero badges: what to add to the catalog next.
+- **Badge links** — set `domain.REFERENCE_PAGE_BASE` when per-record pages exist and
+  matched badges become links to them (dormant while it's `""`).
+
 The JSONs are gitignored (`data/*.json`) — DollScout's are generated from a private
 database — but `fly deploy` ships them from the local directory context.
 

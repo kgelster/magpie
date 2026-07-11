@@ -37,6 +37,30 @@ SEARCH_INTENT = "Barbie collector shopping"
 # cache with these so first visitors hit warm entries.
 DEFAULT_CONDITION = ("secondhand",)
 
+# Base path for matched-badge links to reference pages ("" = badges stay plain
+# text). When the doll reference pages ship, set e.g. "/dolls/" and every badge
+# whose record has a seo_slug becomes a link to its page.
+REFERENCE_PAGE_BASE = ""
+
+# --- /llms.txt (AI-crawler guidance, llmstxt.org convention) -----------------
+
+# Served at /llms.txt; app.py appends the reference-catalog section below this.
+LLMS_INTRO = """# DollScout
+
+> DollScout (https://www.dollscout.com) is a search engine for collector Barbie
+> dolls across independent Shopify shops, built on the Shopify UCP global
+> catalog. Search by doll name, line, designer, era, or Mattel stock number;
+> results link to each merchant's own product page.
+
+DollScout is an independent collector reference and is not affiliated with,
+endorsed by, or sponsored by Mattel. BARBIE is a trademark of Mattel, Inc.
+DollScout publishes no price guides or valuations; listing prices belong to
+the individual merchants.
+"""
+
+# Heading for the generated catalog section of /llms.txt.
+LLMS_CATALOG_HEADING = "Canonical doll catalog (each links to its live search)"
+
 # Relevance guard: keep a result only if its title or description names the
 # brand. Distinct from QUERY_ANCHOR — the anchor keeps the *query* on-topic,
 # these keep the *results* on-topic.

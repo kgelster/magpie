@@ -369,6 +369,16 @@
   .match { font-family: var(--mono); font-size: 9.5px; font-weight: 500; letter-spacing: .06em;
     color: var(--bronze); text-transform: none; }
   #qv-house .match { margin-left: 8px; }
+  a.match { text-decoration: none; }
+  a.match:hover { text-decoration: underline; text-underline-offset: 2px; }
+  /* Zero-results rescue chips (count line) + quick-view "collect the line" rail */
+  .rescue { display: inline-flex; gap: 6px; flex-wrap: wrap; align-items: baseline; margin-left: 6px; }
+  .rescue-btn { background: var(--paper); border: 1px solid var(--ink); border-radius: 4px;
+    padding: 2px 8px; font-family: var(--mono); font-size: 10px; letter-spacing: .06em; cursor: pointer; }
+  .rescue-btn:hover { background: var(--pink-deep); color: #fff; border-color: var(--pink-deep); }
+  .modal-line { margin: 2px 0 10px; font-family: var(--mono); font-size: 10.5px; }
+  .modal-line .line-head { color: var(--bronze); font-weight: 600; letter-spacing: .06em; margin-right: 4px; }
+  .modal-line .rescue-btn { margin: 0 2px 4px 0; }
   .card .name { font-family: var(--serif); font-size: 16px; line-height: 1.2; }
   .card .name-link { color: inherit; text-decoration: none; }
   .card .name-link:hover { color: var(--pink-deep); text-decoration: underline; text-underline-offset: 2px; }
@@ -733,6 +743,7 @@
         <div class="modal-price" id="qv-price"></div>
         <div class="modal-rate" id="qv-rate"></div>
         <p class="modal-desc" id="qv-desc"></p>
+        <div class="modal-line" id="qv-line"></div>
         <div class="modal-actions" id="qv-actions"></div>
       </div>
     </div>
@@ -788,6 +799,7 @@ const MSG_SEARCHING = 'Scouting the shops…';
 const MSG_NO_MATCH = "She's out there. Just not under that name. Try a shorter term, a line, or a designer.";
 const MSG_WISH_EMPTY = `No saved ${NOUNS} yet. Every collection starts with one. Tap the ♥ to keep her here.`;
 const LABEL_MORE_LIKE = 'More like her';
+const LABEL_LINE_RAIL = 'Collect the line —';   // quick-view rail of the matched doll's line-mates
 const LABEL_BACK_TO_HUNT = 'Back to the hunt';
 const TITLE_SAVE_WISH = 'Save her for later';
 const LABEL_LOCATED = 'located';        // count-line verb: "48 of 452 dolls located"
@@ -988,6 +1000,36 @@ function renderActiveFilters() {
   box.innerHTML = pills.join('');
   box.classList.toggle('on', pills.length > 0);
 }
+// Zero-results rescue: closest catalog/taxonomy names to a dead query, as
+// one-click searches ("She's out there... Try: 1996 Happy Holidays Barbie Doll").
+function rescueHTML() {
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  if (!q) return '';
+  const qToks = new Set(q.split(/[^a-z0-9]+/).filter(Boolean));
+  if (!qToks.size) return '';
+  const scored = suggestIndex
+    .map(s => ({ s, hit: s.label.toLowerCase().split(/[^a-z0-9]+/).filter(t => qToks.has(t)).length }))
+    .filter(x => x.hit > 0)
+    .sort((a, b) => b.hit - a.hit
+      || (b.s.group === SUGGEST_CATALOG_GROUP) - (a.s.group === SUGGEST_CATALOG_GROUP));
+  const picks = [], seen = new Set();
+  for (const { s } of scored) {
+    if (seen.has(s.q) || s.q.toLowerCase() === q) continue;
+    seen.add(s.q); picks.push(s);
+    if (picks.length === 3) break;
+  }
+  return picks.length
+    ? ` <span class="rescue">Try: ${picks.map(s =>
+        `<button type="button" class="rescue-btn" data-rq="${encodeURIComponent(s.q)}">${esc(s.label)}</button>`).join('')}</span>`
+    : '';
+}
+function runRescue(q) {
+  const input = document.getElementById('q');
+  input.value = q;
+  document.getElementById('clearx').style.display = 'block';
+  stopPlaceholder(); runSearch();
+}
+
 function clearAll() {
   selectedChips.clear();
   selectedConditions.clear();
@@ -1254,7 +1296,9 @@ function cardHTML(c) {
     ${cardImg}
     <div class="card-body">
       <div class="house">${esc(c.seller_name || '')}${c.sponsored ? '<span class="spon">Sponsored</span>' : ''}</div>
-      ${c.matched ? `<div class="match" title="Matched to a reference catalog entry">matched: ${esc(c.matched)}</div>` : ''}
+      ${c.matched ? (c.matched_page
+        ? `<a class="match" href="${esc(c.matched_page)}" title="Open the reference page">matched: ${esc(c.matched)}</a>`
+        : `<div class="match" title="Matched to a reference catalog entry">matched: ${esc(c.matched)}</div>`) : ''}
       <div class="name">${title}</div>
       <div class="price">${esc(c.price_display)}</div>
       ${c.rating != null ? `<div class="rate">${starmarks(c.rating)}</div>` : ''}
@@ -1353,14 +1397,32 @@ function fillQuick(c) {
   const qvHouse = document.getElementById('qv-house');
   qvHouse.textContent = c.seller_name || '';
   if (c.sponsored) qvHouse.insertAdjacentHTML('beforeend', '<span class="spon">Sponsored</span>');
-  if (c.matched) qvHouse.insertAdjacentHTML('beforeend',
-    `<span class="match" title="Matched to a reference catalog entry">matched: ${esc(c.matched)}</span>`);
+  if (c.matched) qvHouse.insertAdjacentHTML('beforeend', c.matched_page
+    ? `<a class="match" href="${esc(c.matched_page)}" title="Open the reference page">matched: ${esc(c.matched)}</a>`
+    : `<span class="match" title="Matched to a reference catalog entry">matched: ${esc(c.matched)}</span>`);
   document.getElementById('qv-title').textContent = c.title || '';
   document.getElementById('qv-price').textContent = c.price_display || '';
   document.getElementById('qv-rate').textContent = c.rating != null ? starmarks(c.rating) : '';
   document.getElementById('qv-desc').textContent = c.desc || '';
+  renderQuickLineRail(c);
   renderQuickGallery(c.images && c.images.length ? c.images : (c.img ? [c.img] : []));
   renderQuickActions(c);
+}
+// "Collect the line" rail: the matched doll's line-mates from the reference
+// catalog, as compact one-click searches (years when we have them).
+function renderQuickLineRail(c) {
+  const box = document.getElementById('qv-line');
+  box.innerHTML = '';
+  if (!c.matched_line) return;
+  const mates = suggestIndex
+    .filter(s => s.group === SUGGEST_CATALOG_GROUP && s.line === c.matched_line
+              && !(c.matched || '').startsWith(s.label))
+    .sort((a, b) => String(a.year).localeCompare(String(b.year)));
+  if (!mates.length) return;
+  box.innerHTML = `<span class="line-head">${LABEL_LINE_RAIL} ${esc(c.matched_line)}:</span> ` +
+    mates.map(s =>
+      `<button type="button" class="rescue-btn" data-rq="${encodeURIComponent(s.q)}"
+         title="${esc(s.label)}">${esc(String(s.year) || s.label)}</button>`).join('');
 }
 function renderQuickGallery(images) {
   qvGallery = images.map(safeUrl).filter(Boolean);
@@ -1500,7 +1562,7 @@ async function fetchPage(cursor, append) {
     lastTotal = total; updateSheetApply();          // label the mobile sheet's Apply button
     count.innerHTML = (cards.length || append)
       ? `<b>${shown}</b> of ${total} ${NOUNS} ${LABEL_LOCATED}`
-      : MSG_NO_MATCH;
+      : MSG_NO_MATCH + rescueHTML();
     showLoadMore();
   } finally {
     loading = false;
@@ -1718,9 +1780,18 @@ function buildTryBar() {
 async function loadSuggestCatalog() {
   try {
     (await (await fetch('/api/suggest')).json()).forEach(e =>
-      suggestIndex.push({ label: e.label, q: e.q, alt: e.alt || '', group: SUGGEST_CATALOG_GROUP }));
+      suggestIndex.push({ label: e.label, q: e.q, alt: e.alt || '', line: e.line || '',
+                          year: e.year || '', group: SUGGEST_CATALOG_GROUP }));
   } catch { /* dropdown still works with taxonomy entries only */ }
 }
+
+// Rescue / line-rail buttons live in the count line and the quick-view modal;
+// one document-level delegate covers both (closing the modal first if open).
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('.rescue-btn'); if (!b) return;
+  if (qvOpenId) closeQuick();
+  runRescue(decodeURIComponent(b.dataset.rq));
+});
 
 // Init: build the filter bar first (chips must exist before we restore chip state
 // from the URL), then restore full state from ?q=/chip/price/available and search.
