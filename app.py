@@ -7,7 +7,9 @@ lives in domain.py — it ships configured as DollScout, a collector-Barbie
 finder. See RETARGETING.md to point it at your own niche.
 
 Dependency-free (stdlib only). Run:  python3 app.py  then open the printed URL.
-Requires the `ucp` CLI (v0.6.x) on PATH. Global catalog search needs no profile.
+Requires the `ucp` CLI (v0.6.x) on PATH with an active local profile — run
+`ucp profile init --name agent --activate` once (the Dockerfile does this);
+without it every operation fails with PROFILE_NOT_FOUND.
 
 Search-only: result cards link out to each merchant's product / buy-now page.
 This app never builds carts or checkouts.
