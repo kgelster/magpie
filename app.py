@@ -584,7 +584,7 @@ def render_doll(page):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&family=Overpass+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/riso.css">
+<link rel="stylesheet" href="/riso.css?v=2">
 <style>{_DOLL_CSS}</style>
 <script type="application/ld+json">{_doll_json_ld(page, canonical)}</script>
 </head>
