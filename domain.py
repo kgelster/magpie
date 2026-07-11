@@ -38,9 +38,9 @@ SEARCH_INTENT = "Barbie collector shopping"
 DEFAULT_CONDITION = ("secondhand",)
 
 # Base path for matched-badge links to reference pages ("" = badges stay plain
-# text). When the doll reference pages ship, set e.g. "/dolls/" and every badge
-# whose record has a seo_slug becomes a link to its page.
-REFERENCE_PAGE_BASE = ""
+# text). Set since 2026-07-11: every matched badge whose record slug is routed
+# (see REFERENCE_PILOT_SLUGS below) links to its /doll/ reference page.
+REFERENCE_PAGE_BASE = "/doll/"
 
 # --- Reference pages (/doll/<slug>) ------------------------------------------
 

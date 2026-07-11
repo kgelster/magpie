@@ -920,8 +920,9 @@ def _card_from_product(p):
         "matched": _badge(rec) if rec else None,
         "matched_line": rec["line"] if rec else None,          # powers the quick-view line rail
         "matched_page": (domain.REFERENCE_PAGE_BASE + rec["slug"]
-                         if rec and rec["slug"] and domain.REFERENCE_PAGE_BASE
-                         else None),                           # badge link once reference pages ship
+                         if rec and rec["slug"] in _PAGES and domain.REFERENCE_PAGE_BASE
+                         else None),   # badge links only to ROUTED slugs — a non-pilot
+                                       # record's page would 404 (see REFERENCE_PILOT_SLUGS)
     }
 
 
