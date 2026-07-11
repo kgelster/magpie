@@ -604,6 +604,8 @@
       background: var(--pink); color: var(--ink); cursor: pointer; padding: 0; }
     .goicon:active { background: var(--ink); color: #fff; }
     .clearx { right: 54px; font-size: 22px; }
+    /* Mobile try-bar: the chips crowd a phone hero — keep only the dice. */
+    .trybar .try-lead, .trybar .trychip:not(.dice) { display: none; }
   }
 
   /* label corrections: eyebrows in ink, star ratings in muted ink (meaningful ≠ tint) */
