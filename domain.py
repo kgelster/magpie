@@ -22,6 +22,10 @@ REDIRECT_HOSTS = {"dollscout.fly.dev", "dollscout.com"}
 GSC_VERIFICATION_TOKEN = "google3dc13d11640e4472"
 
 # --- Search shaping ---------------------------------------------------------
+# Accuracy model (full tips: README "Getting accurate results from UCP"): shape
+# the query out (anchor, intent, chip text, stock->name expansion), then filter
+# results back (BRAND_TERMS keep-guard, EXCLUDE_BRAND_TERMS, BANNED_SELLERS).
+# The catalog is all-of-ecommerce; neither layer alone is enough.
 
 # The UCP global catalog is all-of-ecommerce; without an explicit anchor a
 # query like "Ken doll" or "1990s" drifts into generic/baby dolls. The anchor

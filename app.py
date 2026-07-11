@@ -781,6 +781,9 @@ def build_ucp_input(query="", chips=None, price_min=None, price_max=None,
                     limit=DEFAULT_LIMIT, like=None):
     """Request params -> UCP `catalog search --input` dict.
 
+    Query-side half of the accuracy pipeline (README: "Getting accurate results
+    from UCP"): anchor, intent context, chip text, stock->name expansion.
+
     chips: list of query-enrichment strings (from taxonomy).
     price_min/price_max: dollars (float) -> converted to minor units.
     condition: list of UCP condition values ("new"/"secondhand"); empty/None = any.
@@ -929,7 +932,11 @@ def _card_from_product(p):
 
 
 def normalize(raw):
-    """Raw UCP search response -> {cards, next_cursor, total_count}. Never raises."""
+    """Raw UCP search response -> {cards, next_cursor, total_count}. Never raises.
+
+    Result-side half of the accuracy pipeline (README: "Getting accurate results
+    from UCP"): brand keep-guard, collab-merch exclusion, seller ban (in
+    _card_from_product)."""
     result = (raw or {}).get("result") or {}
     cards = []
     for p in (result.get("products") or []):

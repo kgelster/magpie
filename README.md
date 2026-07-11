@@ -123,12 +123,68 @@ Useful implementation details:
 - Prices arrive in **minor units** with a currency (`3000` = `$30.00 USD`).
 - Pagination is **cursor-based**, followed verbatim from `result.pagination.cursor`.
 - UCP has **no server-side sort**, so sorting is client-side over the loaded set.
-- A **relevance filter** (`domain.BRAND_TERMS`) drops results whose title and
-  description both lack a brand marker; the **query anchor** (`domain.QUERY_ANCHOR`)
-  keeps free-text searches on-topic in an all-of-ecommerce catalog; a
-  **collab-brand exclusion list** (`domain.EXCLUDE_BRAND_TERMS`) drops licensed
-  merch (Funko Pops, Hot Wheels, UNO decks...) that carries the brand name but
-  isn't the collectible itself.
+- Result relevance is a layered pipeline — see the next section.
+
+## Getting accurate results from UCP
+
+The UCP global catalog is all-of-ecommerce with no niche awareness: ask it for
+"Ken doll" and it drifts into baby dolls; ask for "1980s" and it returns
+80th-anniversary product. Magpie gets collector-grade accuracy by **shaping the
+query on the way out and filtering results on the way back** — neither layer
+alone is enough. Every tip below came from tuning DollScout against live
+results, and each maps to a `domain.py` knob.
+
+### Shape the query (send UCP something it can answer)
+
+- **Anchor every query** (`QUERY_ANCHOR`). Prepend the one word your niche
+  always includes to any query that lacks it. This single knob does more for
+  relevance than anything else.
+- **Declare intent** (`SEARCH_INTENT`). Sent as UCP `context.intent` on every
+  search, with active chips appended — it nudges ranking toward the shopping
+  context you name.
+- **Chips are query text, not filters.** UCP has no taxonomy facets, so each
+  chip appends sharpener words to the query string. Chip on traits sellers
+  actually type into listings: if merchants don't write "playline" or credit a
+  designer in the title/description, no query phrasing will surface it.
+- **Qualify ambiguous terms.** Bare "1980s" pulled 80th-anniversary dolls;
+  "1980s vintage" took that chip from 83% to 96% on-topic.
+- **Search names, not numbers.** The catalog doesn't index stock/model numbers.
+  When a query contains a stock number that maps to exactly one catalog record,
+  append the record's name to the query (`_expand_stock_query` in `app.py`) —
+  "1703" alone then finds the 1988 Happy Holidays doll.
+
+### Filter the results (UCP still returns junk)
+
+- **Keep-guard** (`BRAND_TERMS`): drop any result whose title AND description
+  both lack a brand marker. Even anchored queries pull generic backfill.
+- **Drop licensed merch by collab-brand marker** (`EXCLUDE_BRAND_TERMS`):
+  Funko, Hot Wheels, UNO... products that carry your niche's name but aren't
+  the collectible. Match on **word boundaries** over normalized text, or "uno"
+  hits inside "Bruno".
+- **Don't over-block.** DollScout deliberately excludes neither "hallmark" nor
+  "swarovski" — real collector dolls carry those words. Their merch is caught
+  at the badge layer by generic merch words ("ornament", "figurine") instead.
+- **Ban sellers that never name the collab brand** (`BANNED_SELLERS`): a Funko
+  specialist titling a Pop just "Holiday Barbie 1988" defeats every text
+  filter, so filter on the seller (matched vs. domain, custom host, and name).
+- **Route each junk class to the right layer.** Off-topic *query drift* →
+  `QUERY_ANCHOR`; on-brand *licensed merch* → `EXCLUDE_BRAND_TERMS`; merch from
+  sellers who *don't name the brand* → `BANNED_SELLERS`; merchandise *about* an
+  item that shouldn't be identified as the item → `MATCH_NEGATIVE_TERMS`
+  (suppresses the badge without dropping the listing).
+
+### Measure, then cut
+
+- **Sweep chips against live results.** For each chip, score the fraction of
+  returned cards that keep the chip's promise. DollScout's sweep cut a whole
+  "Designer" group (2–40%: sellers rarely credit designers in listing text) and
+  "Playline" (0%: the catalog reads it as "play" and returns playsets).
+- **Hold canned queries to a demo bar.** Every `POPULAR_QUERIES` entry and
+  placeholder example must score ≥9/10 relevant in its top 10 live results.
+  Anything that demos badly gets cut, no matter how good the joke.
+- **Let users tell you what's missing.** `/api/stats` reports `unmatched_top`:
+  repeated search terms whose results carried zero badges — your census queue
+  for what to catalog next.
 
 ## Reference match index (optional)
 
