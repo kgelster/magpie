@@ -590,6 +590,22 @@
   .chip.on, .pill.on, .savedbtn.on { border-color: var(--ink); }
   .afpill:hover, .afpill:focus-visible { background: var(--pink); color: var(--ink); border-color: var(--ink); }
 
+  /* Mobile search: one modern full-width field, search-engine style. The block
+     SEARCH button hides; a magnifier submit lives inside the field (pink fill +
+     ink icon per the CTA rule). Placed after the riso overrides to win cascade. */
+  .goicon { display: none; }
+  @media (max-width: 720px) {
+    .searchbar { gap: 0; }
+    .searchbar .go { display: none; }
+    .search-wrap input { padding-right: 96px; border-radius: 8px; }
+    .goicon { display: flex; align-items: center; justify-content: center;
+      position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+      width: 40px; height: 40px; border: 1px solid var(--ink); border-radius: 6px;
+      background: var(--pink); color: var(--ink); cursor: pointer; padding: 0; }
+    .goicon:active { background: var(--ink); color: #fff; }
+    .clearx { right: 54px; font-size: 22px; }
+  }
+
   /* label corrections: eyebrows in ink, star ratings in muted ink (meaningful ≠ tint) */
   .eyebrow { color: var(--ink); }
   .card .rate, .modal-rate { color: var(--ink-soft); }
@@ -652,6 +668,11 @@
                  autocomplete="off" role="combobox" aria-autocomplete="list"
                  aria-expanded="false" aria-controls="suggest" oninput="onQueryInput()">
           <button class="clearx" id="clearx" title="Clear search" onclick="clearQuery()">×</button>
+          <button class="goicon" onclick="runSearch()" aria-label="Search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+          </button>
           <div class="suggest" id="suggest" role="listbox" aria-label="Search suggestions"></div>
         </div>
         <button class="go" onclick="runSearch()">Search</button>
