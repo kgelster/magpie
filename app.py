@@ -580,7 +580,8 @@ def warm_cache():
     a warm cache. Runs in a daemon thread at boot; params mirror a real /?q= request."""
     for term in domain.POPULAR_QUERIES:
         params = {"query": term, "chips": [], "price_min": None, "price_max": None,
-                  "available": True, "condition": [], "cursor": None, "like": None}
+                  "available": True, "condition": sorted(domain.DEFAULT_CONDITION),
+                  "cursor": None, "like": None}
         key = _cache_key(params)
         if cache_get(key) is not None:
             continue

@@ -17,6 +17,7 @@ Every constant, with its DollScout value and what to change it to:
 | `QUERY_ANCHOR` | `"Barbie"` | The word that keeps free-text queries on-topic. Prepended to any query that lacks it. Pick the term your niche always includes ("vinyl", "NES", "fountain pen") |
 | `DEFAULT_QUERY` | `"Barbie collector doll"` | What an empty search box searches |
 | `SEARCH_INTENT` | `"Barbie collector shopping"` | Sent as UCP `context.intent` |
+| `DEFAULT_CONDITION` | `("secondhand",)` | Condition filter the UI starts with (`()` = Any). Keep in sync with `DEFAULT_CONDITIONS` in index.html — cache warming uses it |
 | `BRAND_TERMS` | `("barbie", "mattel")` | Relevance guard: a result is kept only if its title or description contains one of these. Lowercase substrings |
 | `BANNED_SELLERS` | `("sell4value",)` | Merchants to hide. Start empty: `()` |
 | `SPONSORED_SELLERS` | `()` | Sellers with a paid/affiliate/material relationship to YOUR deployment. Their results get a visible "Sponsored" label (never a ranking change). Labeling paid relationships is mandatory, not optional |

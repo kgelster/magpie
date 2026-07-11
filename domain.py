@@ -31,6 +31,12 @@ DEFAULT_QUERY = "Barbie collector doll"
 # Passed as UCP context.intent on every search (chips get appended).
 SEARCH_INTENT = "Barbie collector shopping"
 
+# Condition filter the UI starts with (UCP filters.condition values; empty tuple
+# = Any). Collectors hunt the secondary market, so Pre-owned is the default.
+# COUPLING: must match DEFAULT_CONDITIONS in index.html — app.py warms the boot
+# cache with these so first visitors hit warm entries.
+DEFAULT_CONDITION = ("secondhand",)
+
 # Relevance guard: keep a result only if its title or description names the
 # brand. Distinct from QUERY_ANCHOR — the anchor keeps the *query* on-topic,
 # these keep the *results* on-topic.
