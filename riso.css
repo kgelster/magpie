@@ -1,0 +1,25 @@
+/* DollScout riso design tokens — the single source of truth for every hex value.
+   Consumed by index.html and the /doll/ reference pages (served at /riso.css).
+   Change colors HERE; component rules in each page reference var(--*) only.
+   Spec name → legacy var: paper→--porcelain, surface-raised→--paper,
+   primary→--pink, secondary→--pink-deep/--bronze, secondary-tint→--gold/--tint.
+   (See DESIGN.md for the contrast math behind each role.) */
+:root {
+  --porcelain: #EDE2E3;   /* paper: universal page background */
+  --paper:     #ffffff;   /* surface-raised: cards, inputs, modals only */
+  --ink:       #111827;   /* body text, icons, focus rings (14:1 on paper) */
+  --ink-soft:  #4B4A55;   /* muted text (6.9:1 on paper, AA) */
+  --pink:      #F237A1;   /* primary: interaction FILLS only — never text, never small icons */
+  --pink-deep: #2C40A7;   /* secondary: headings + link text (6.9:1 on paper; legacy slot was pink text) */
+  --mauve:     var(--ink-soft);
+  --bronze:    #2C40A7;   /* secondary (legacy slot: eyebrows, stars, mlt links) */
+  --gold:      #6DC6EC;   /* secondary-tint: DECORATIVE only (1.5:1) — shadows, hairlines */
+  --tint:      #6DC6EC;
+  --line:      rgba(17,24,39,.15);
+  --paper-veil: rgba(237,226,227,.55);  /* paper at 55%: hero photo overlay wash */
+  --success: #16A34A; --warning: #D97706; --danger: #DC2626;  /* status fills; ink text on top */
+  --serif: "Space Grotesk", system-ui, sans-serif;
+  --sans: "Space Grotesk", system-ui, sans-serif;
+  --script: "Space Grotesk", system-ui, sans-serif;
+  --mono: "Overpass Mono", ui-monospace, "SF Mono", monospace;
+}
