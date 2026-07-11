@@ -16,7 +16,7 @@ RUN npm install -g @shopify/ucp-cli@0.6.2
 RUN ucp profile init --name agent --activate
 
 WORKDIR /app
-COPY app.py domain.py index.html privacy.html terms.html og-image.png hero-bg.jpg ./
+COPY app.py domain.py index.html riso.css privacy.html terms.html og-image.png hero-bg.jpg ./
 # Optional reference match index. data/*.json is gitignored but ships from the
 # local deploy context; the dir itself always exists (data/README.md is tracked).
 COPY data/ ./data/
