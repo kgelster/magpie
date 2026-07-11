@@ -34,7 +34,7 @@ share one hex source). Legacy slot → spec token:
 | `--line` | *(added)* | `rgba(17,24,39,.15)` | Decorative hairlines/borders. Borders that convey meaning use `--ink` |
 | `--success/warning/danger` | status | `#16A34A / #D97706 / #DC2626` | Functional status only, never decorative |
 
-Fonts: `--sans`/`--serif`/`--script` all resolve to Space Grotesk (300–700);
+Fonts: `--sans`/`--serif`/`--script` all resolve to Poppins (300–700; was Space Grotesk until 2026-07-11);
 `--mono` is Overpass Mono (label-caps surfaces). Radius: 8px cards/modals/buttons,
 4px inputs/tags/pills.
 
@@ -160,7 +160,7 @@ BRAND BLOCK 5/6 (`MSG_*`, `LABEL_*`, `TITLE_*`) and `domain.NOT_FOUND_*`.
   `hero-bg.jpg` is unused; remove from the repo and Dockerfile whenever convenient.
 - The hero Search button carries a 1px ink border and a 16px label (Kurt, 2026-07-02);
   other primary buttons keep the mono 12px label.
-- The 404 page doesn't load webfonts (kept dependency-free) — Space Grotesk falls back
+- The 404 page doesn't load webfonts (kept dependency-free) — Poppins falls back
   to system sans there.
 - `secondary-tint` on the count-spinner ring would fail 3:1; spinner uses secondary. 
 

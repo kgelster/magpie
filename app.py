@@ -204,7 +204,7 @@ NOT_FOUND_HTML = f"""<!DOCTYPE html>
   /* riso tokens: paper #EDE2E3, ink #111827, primary #F237A1 (fill+ink text),
      secondary #2C40A7 (heading), tint #6DC6EC (decorative shadow) */
   body {{ margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    background: #EDE2E3; color: #111827; font-family: "Space Grotesk", system-ui, sans-serif;
+    background: #EDE2E3; color: #111827; font-family: "Poppins", system-ui, sans-serif;
     text-align: center; }}
   main {{ padding: 32px; }}
   .code {{ font-family: ui-monospace, "SF Mono", monospace; font-size: 12px; font-weight: 500;
@@ -583,7 +583,7 @@ def render_doll(page):
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Overpass+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&family=Overpass+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/riso.css">
 <style>{_DOLL_CSS}</style>
 <script type="application/ld+json">{_doll_json_ld(page, canonical)}</script>

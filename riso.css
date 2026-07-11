@@ -18,8 +18,8 @@
   --line:      rgba(17,24,39,.15);
   --paper-veil: rgba(237,226,227,.55);  /* paper at 55%: hero photo overlay wash */
   --success: #16A34A; --warning: #D97706; --danger: #DC2626;  /* status fills; ink text on top */
-  --serif: "Space Grotesk", system-ui, sans-serif;
-  --sans: "Space Grotesk", system-ui, sans-serif;
-  --script: "Space Grotesk", system-ui, sans-serif;
+  --serif: "Poppins", system-ui, sans-serif;
+  --sans: "Poppins", system-ui, sans-serif;
+  --script: "Poppins", system-ui, sans-serif;
   --mono: "Overpass Mono", ui-monospace, "SF Mono", monospace;
 }
