@@ -57,7 +57,8 @@ their results is deceptive (and in most jurisdictions, illegal): don't strip thi
 The engine is small but production-hardened (it runs dollscout.com):
 
 - **UCP global catalog search** via the `ucp` CLI: query + taxonomy chips + price /
-  in-stock filters, cursor pagination, "more like this" similarity search
+  in-stock / condition (New / Pre-owned, UCP `filters.condition`) filters, cursor
+  pagination, "more like this" similarity search
 - **In-memory TTL cache** (repeat searches ~780ms → ~0ms, LRU-capped, warmed at boot
   with your popular queries)
 - **Rate limiting** (sliding window per IP) and a **process semaphore** so a traffic

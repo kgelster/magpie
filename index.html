@@ -757,6 +757,10 @@
 <script>
 const LABELS = { "Decade": "Era", "Line / Series": "Line" };
 let taxonomyData = {}, qByGroup = {}, selectedChips = new Set(), suggestIndex = [];
+// Condition is a UCP hard filter (filters.condition), not a taxonomy chip:
+// values are protocol enums, identical for every retarget. Empty set = Any.
+const CONDITIONS = [{ label: 'New', value: 'new' }, { label: 'Pre-owned', value: 'secondhand' }];
+const selectedConditions = new Set();
 let availOnly = true, nextCursor = null, likeSeed = null, loading = false;   // likeSeed = {id, title}
 let infinite = true;               // auto-load next page on scroll; off → manual "Show more" (reaches footer)
 let sortMode = 'relevance';        // 'relevance' (UCP order) | 'price-asc' | 'price-desc'
@@ -828,6 +832,18 @@ async function loadTaxonomy() {
   refineGroup.appendChild(price);
   document.getElementById('priceApply').onclick = () => { closeFacets(); updateBadges(); refresh(); };
 
+  const cond = document.createElement('div');
+  cond.className = 'facet'; cond.dataset.group = '__condition';
+  cond.innerHTML =
+    `<button class="facet-btn" type="button">Condition
+       <span class="badge"></span><span class="caret">▼</span></button>
+     <div class="facet-panel">${CONDITIONS.map(c =>
+       `<button type="button" class="chip" data-cond="${c.value}">${c.label}</button>`).join('')}</div>`;
+  cond.querySelector('.facet-btn').onclick = (e) => { e.stopPropagation(); toggleFacet(cond); };
+  cond.querySelectorAll('.chip').forEach(el =>
+    el.onclick = (e) => { e.stopPropagation(); toggleCondition(el); });
+  refineGroup.appendChild(cond);
+
   const pill = document.createElement('button');
   pill.className = 'pill on'; pill.id = 'availpill'; pill.type = 'button';
   pill.textContent = 'In Stock';
@@ -890,6 +906,14 @@ function toggleAvail() {
   document.getElementById('availpill').classList.toggle('on', availOnly);
   updateBadges(); refresh();
 }
+// No exitLike() here: condition is a hard filter, and filters still apply in
+// "more like this" mode (unlike chips, which are keyword intent).
+function toggleCondition(el) {
+  const v = el.dataset.cond;
+  if (selectedConditions.has(v)) { selectedConditions.delete(v); el.classList.remove('on'); }
+  else { selectedConditions.add(v); el.classList.add('on'); }
+  updateBadges(); refresh();
+}
 
 function cssEsc(s) { return s.replace(/["\\]/g, '\\$&'); }
 function updateBadges() {
@@ -908,9 +932,16 @@ function updateBadges() {
     b.textContent = set ? '$' : ''; b.style.display = set ? 'inline-block' : 'none';
     pf.querySelector('.facet-btn').classList.toggle('active', !!set);
   }
-  const active = selectedChips.size || pmin || pmax || !availOnly;
+  const cf = document.querySelector('.facet[data-group="__condition"]');
+  if (cf) {
+    const b = cf.querySelector('.badge'), n = selectedConditions.size;
+    b.textContent = n; b.style.display = n ? 'inline-block' : 'none';
+    cf.querySelector('.facet-btn').classList.toggle('active', n > 0);
+  }
+  const active = selectedChips.size || selectedConditions.size || pmin || pmax || !availOnly;
   document.getElementById('clearall').style.display = active ? 'inline-flex' : 'none';
-  const nfilt = selectedChips.size + ((pmin || pmax) ? 1 : 0) + (availOnly ? 0 : 1);
+  const nfilt = selectedChips.size + selectedConditions.size
+    + ((pmin || pmax) ? 1 : 0) + (availOnly ? 0 : 1);
   const mc = document.getElementById('mcount');
   if (mc) { mc.textContent = nfilt; mc.classList.toggle('on', nfilt > 0); }
   renderActiveFilters();
@@ -937,11 +968,18 @@ function renderActiveFilters() {
     pills.push(`<button class="afpill" type="button" data-kind="price">${lbl}
       <span class="x" aria-hidden="true">×</span><span class="sr-only">remove price filter</span></button>`);
   }
+  CONDITIONS.forEach(c => {
+    if (!selectedConditions.has(c.value)) return;
+    pills.push(`<button class="afpill" type="button" data-kind="condition"
+      data-cond="${c.value}">${c.label} <span class="x" aria-hidden="true">×</span>
+      <span class="sr-only">remove condition filter</span></button>`);
+  });
   box.innerHTML = pills.join('');
   box.classList.toggle('on', pills.length > 0);
 }
 function clearAll() {
   selectedChips.clear();
+  selectedConditions.clear();
   document.querySelectorAll('.chip.on').forEach(c => c.classList.remove('on'));
   const pmin = document.getElementById('pmin'), pmax = document.getElementById('pmax');
   if (pmin) pmin.value = ''; if (pmax) pmax.value = '';
@@ -1109,6 +1147,7 @@ function buildParams(cursor) {
   const pmax = (document.getElementById('pmax')||{}).value;
   if (pmin) p.set('price_min', pmin);
   if (pmax) p.set('price_max', pmax);
+  selectedConditions.forEach(c => p.append('condition', c));
   p.set('available', availOnly ? '1' : '0');
   if (cursor) p.set('cursor', cursor);
   return p;
@@ -1594,6 +1633,9 @@ document.getElementById('activefilters').addEventListener('click', (e) => {
     const pmin = document.getElementById('pmin'), pmax = document.getElementById('pmax');
     if (pmin) pmin.value = ''; if (pmax) pmax.value = '';
     updateBadges(); refresh();
+  } else if (b.dataset.kind === 'condition') {
+    const el = document.querySelector(`.chip[data-cond="${b.dataset.cond}"]`);
+    if (el) toggleCondition(el);     // untoggles the chip + refreshes (also re-renders these pills)
   }
 });
 

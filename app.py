@@ -230,11 +230,13 @@ _CURRENCY_SYMBOLS = {"USD": "$", "CAD": "$", "AUD": "$", "GBP": "Â£", "EUR": "â‚
 # ---------------------------------------------------------------------------
 
 def build_ucp_input(query="", chips=None, price_min=None, price_max=None,
-                    available=True, cursor=None, limit=DEFAULT_LIMIT, like=None):
+                    available=True, condition=None, cursor=None,
+                    limit=DEFAULT_LIMIT, like=None):
     """Request params -> UCP `catalog search --input` dict.
 
     chips: list of query-enrichment strings (from taxonomy).
     price_min/price_max: dollars (float) -> converted to minor units.
+    condition: list of UCP condition values ("new"/"secondhand"); empty/None = any.
     like: a product GID (gid://shopify/...) for "more like this" similarity search;
           when set, similarity drives results and the text query is ignored.
     """
@@ -246,6 +248,9 @@ def build_ucp_input(query="", chips=None, price_min=None, price_max=None,
         price["max"] = int(round(float(price_max) * 100))
     if price:
         filters["price"] = price
+    if condition:
+        # Sorted so ["new","secondhand"] and its reverse share one cache entry.
+        filters["condition"] = sorted(condition)
 
     pagination = {"limit": int(limit)}
     if cursor:
@@ -470,7 +475,7 @@ def warm_cache():
     a warm cache. Runs in a daemon thread at boot; params mirror a real /?q= request."""
     for term in domain.POPULAR_QUERIES:
         params = {"query": term, "chips": [], "price_min": None, "price_max": None,
-                  "available": True, "cursor": None, "like": None}
+                  "available": True, "condition": [], "cursor": None, "like": None}
         key = _cache_key(params)
         if cache_get(key) is not None:
             continue
@@ -501,6 +506,8 @@ def _parse_search_query(qs):
         "price_min": _num("price_min"),
         "price_max": _num("price_max"),
         "available": (qs.get("available") or ["1"])[0] != "0",
+        "condition": [c for c in (qs.get("condition") or [])
+                      if c in ("new", "secondhand")],
         "cursor": (qs.get("cursor") or [None])[0] or None,
         "like": (qs.get("like") or [None])[0] or None,
     }
