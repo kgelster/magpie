@@ -19,6 +19,7 @@ Every constant, with its DollScout value and what to change it to:
 | `SEARCH_INTENT` | `"Barbie collector shopping"` | Sent as UCP `context.intent` |
 | `DEFAULT_CONDITION` | `("secondhand",)` | Condition filter the UI starts with (`()` = Any). Keep in sync with `DEFAULT_CONDITIONS` in index.html — cache warming uses it |
 | `BRAND_TERMS` | `("barbie", "mattel")` | Relevance guard: a result is kept only if its title or description contains one of these. Lowercase substrings |
+| `EXCLUDE_BRAND_TERMS` | `("funko", "hot wheels", ...)` | Collab/licensed-merch brands whose products carry your niche's name but aren't the collectible (vinyl figures, apparel, games). Word-boundary matched vs title+description; matching results are dropped. Sellers that never name the brand go in `BANNED_SELLERS` instead |
 | `BANNED_SELLERS` | `("sell4value",)` | Merchants to hide. Start empty: `()` |
 | `SPONSORED_SELLERS` | `()` | Sellers with a paid/affiliate/material relationship to YOUR deployment. Their results get a visible "Sponsored" label (never a ranking change). Labeling paid relationships is mandatory, not optional |
 | `POPULAR_QUERIES` | 12 Barbie searches | Your niche's popular searches (free text). Drives the sitemap, the suggestion dropdown seeds, and boot-time cache warming. Mirror the same list in `POPULAR` (block 6) |

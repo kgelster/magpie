@@ -295,6 +295,9 @@ _MATCH = _load_match_index()
 sys.stderr.write(f"  matcher: {len(_MATCH['recs'])} reference records loaded\n" if _MATCH
                  else f"  matcher: no index at {MATCH_INDEX_DIR} (matched badges off)\n")
 
+# Collab-brand result exclusions (normalized once; see domain.EXCLUDE_BRAND_TERMS).
+_EXCLUDE_BRANDS = tuple(_match_norm(t) for t in domain.EXCLUDE_BRAND_TERMS)
+
 
 def match_reference(title, desc=""):
     """The reference entry this listing matches -> badge text "name #stock", or None."""
@@ -482,6 +485,13 @@ def normalize(raw):
         # The UCP global catalog returns some off-topic items even with the query
         # anchor; drop anything whose title AND description both lack a brand marker.
         if not any(term in (card["title"] + " " + card["desc"]).lower() for term in domain.BRAND_TERMS):
+            continue
+        # Collab/licensed merch (Funko, Hot Wheels, UNO...) carries the brand
+        # marker but isn't the collectible itself; word-boundary match so "uno"
+        # can't hit inside "Bruno" (uses the matcher's normalizer, which works
+        # with or without a match index loaded).
+        hay = f" {_match_norm(card['title'] + ' ' + card['desc'])} "
+        if any(f" {t} " in hay for t in _EXCLUDE_BRANDS):
             continue
         cards.append(card)
     if _MATCH and cards:

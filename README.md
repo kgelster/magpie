@@ -117,7 +117,10 @@ Useful implementation details:
 - UCP has **no server-side sort**, so sorting is client-side over the loaded set.
 - A **relevance filter** (`domain.BRAND_TERMS`) drops results whose title and
   description both lack a brand marker; the **query anchor** (`domain.QUERY_ANCHOR`)
-  keeps free-text searches on-topic in an all-of-ecommerce catalog.
+  keeps free-text searches on-topic in an all-of-ecommerce catalog; a
+  **collab-brand exclusion list** (`domain.EXCLUDE_BRAND_TERMS`) drops licensed
+  merch (Funko Pops, Hot Wheels, UNO decks...) that carries the brand name but
+  isn't the collectible itself.
 
 ## Reference match index (optional)
 

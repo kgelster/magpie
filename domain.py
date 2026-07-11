@@ -42,6 +42,32 @@ DEFAULT_CONDITION = ("secondhand",)
 # these keep the *results* on-topic.
 BRAND_TERMS = ("barbie", "mattel")
 
+# Collab/licensed-merch brand markers: a result whose title or description
+# names one of these is that brand's product wearing the Barbie license (vinyl
+# figure, toy car, card game, footwear...), never a doll. Matched on word
+# boundaries against normalized title+description and DROPPED from results
+# entirely (unlike MATCH_NEGATIVE_TERMS below, which only suppresses the
+# matched badge). Deliberately absent: "hallmark" (Hallmark sold real exclusive
+# dolls — Victorian Elegance, Holiday Memories) and "swarovski" (legit collector
+# dolls advertise Swarovski crystals in their outfits); their merch is caught by
+# generic words like "ornament"/"figurine" at the badge layer instead. Sellers
+# that stock only collab merch but never name the brand in listings (e.g. Funko
+# shops titling a Pop "Holiday Barbie 1988") go in BANNED_SELLERS below.
+EXCLUDE_BRAND_TERMS = (
+    "funko",                                  # Pop! vinyl figures
+    "hot wheels",                             # Barbie-livery cars
+    "happy meal", "mcdonald", "mcdonalds",    # 90s McDonald's premiums
+    "uno", "monopoly",                        # card/board games
+    "mega bloks", "mega construx",            # brick sets
+    "little people",                          # Fisher-Price figure sets
+    "squishmallow", "squishmallows",          # plush
+    "crocs", "vans", "puma",                  # footwear collabs
+    "stanley",                                # tumbler collab
+    "impala",                                 # roller skates
+    "opi", "nyx",                             # cosmetics collabs
+    "pez",                                    # dispensers
+)
+
 # Reference match index (see app.py "reference match index"): name words too
 # generic to corroborate a stock-number match on their own — brand terms plus
 # the hobby's nouns and filler that appear in nearly every listing title.
@@ -59,7 +85,9 @@ MATCH_NEGATIVE_TERMS = ("ornament", "figurine", "music box", "advertisement", "p
 # myshopify domain, its custom-domain host, and its name — so "sell4value"
 # catches sell4value.com, sell4value.myshopify.com, and the "SELL4VALUE"
 # display name. Curate per deployment; empty tuple disables the filter.
-BANNED_SELLERS = ("sell4value",)
+# "pops of the galaxy" is a Funko specialist whose listings never say "Funko"
+# (a Pop titled just "Holiday Barbie 1988"), so EXCLUDE_BRAND_TERMS can't catch it.
+BANNED_SELLERS = ("sell4value", "pops of the galaxy")
 
 # Sponsored-seller disclosure: any seller with a paid, affiliate, or other
 # material relationship to this deployment MUST be listed here. Matching works
