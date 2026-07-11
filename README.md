@@ -69,7 +69,11 @@ The engine is small but production-hardened (it runs dollscout.com):
 - **Polished UI**: suggestion dropdown, typewriter placeholder, quick-view modal with
   gallery, localStorage wishlist, client-side sort, infinite scroll, mobile filter
   bottom-sheet, `prefers-reduced-motion` support
-- **Observability**: `/api/stats` with cache hit rate and p50/p95 search latency
+- **Observability**: `/api/stats` with cache hit rate, p50/p95 search latency, and
+  reference-match hit rate
+- **Reference match index (optional)**: drop three JSON files into `data/` and every
+  result whose listing matches a canonical entry in your reference catalog gets a
+  "matched: …" badge (see below)
 
 ## Quickstart
 
@@ -114,6 +118,31 @@ Useful implementation details:
 - A **relevance filter** (`domain.BRAND_TERMS`) drops results whose title and
   description both lack a brand marker; the **query anchor** (`domain.QUERY_ANCHOR`)
   keeps free-text searches on-topic in an all-of-ecommerce catalog.
+
+## Reference match index (optional)
+
+If you maintain a structured catalog of the collectibles in your niche, the engine can
+tag live results with the canonical entry they match — DollScout shows
+`matched: 1988 Happy Holidays Barbie Doll #1703` on listings it recognizes.
+
+Drop three JSON files into `data/` (path overridable via `MATCH_INDEX_DIR`); without
+them the feature is silently off:
+
+| File | Shape |
+|---|---|
+| `master.json` | `{id: {name, year, stock_number, ...}}` — one entry per canonical item |
+| `stock-numbers.json` | `{normalized_stock: [ids]}` — digits zero-stripped, alpha uppercased |
+| `aliases.json` | `{lowercased alias: [ids]}` — each alias should carry year + name |
+
+Matching is deliberately precision-first: an alias must cover the listing **title**
+(token-subset, word order free), and a stock number alone never matches — manufacturers
+reuse stock numbers, so a stock hit also needs the record's year or identifying name
+words in the listing text. Titles containing `domain.MATCH_NEGATIVE_TERMS` (ornaments,
+mugs, posters... merchandise *about* an item) never get a badge. `/api/stats` reports
+`match_rate` over cards served.
+
+The JSONs are gitignored (`data/*.json`) — DollScout's are generated from a private
+database — but `fly deploy` ships them from the local directory context.
 
 ## Deploy (Fly.io)
 

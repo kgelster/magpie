@@ -17,6 +17,9 @@ RUN ucp profile init --name agent --activate
 
 WORKDIR /app
 COPY app.py domain.py index.html privacy.html terms.html og-image.png hero-bg.jpg ./
+# Optional reference match index. data/*.json is gitignored but ships from the
+# local deploy context; the dir itself always exists (data/README.md is tracked).
+COPY data/ ./data/
 
 # HOST=0.0.0.0 so Fly's proxy can reach the server; PORT matches fly.toml internal_port.
 ENV HOST=0.0.0.0 \

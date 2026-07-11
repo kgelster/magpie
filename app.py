@@ -112,7 +112,7 @@ def cache_put(key, payload):
 
 # --- Observability: cache hit-rate + ucp latency (exposed at /api/stats) ---
 _stats_lock = threading.Lock()
-_stats = {"hits": 0, "misses": 0}
+_stats = {"hits": 0, "misses": 0, "match_cards": 0, "total_cards": 0}
 _latencies = deque(maxlen=500)          # recent ucp (cache-miss) search durations, ms
 
 
@@ -138,6 +138,7 @@ def _percentile(vals, p):
 def stats_snapshot():
     with _stats_lock:
         hits, misses, lat = _stats["hits"], _stats["misses"], list(_latencies)
+        match_cards, total_cards = _stats["match_cards"], _stats["total_cards"]
     total = hits + misses
     return {
         "cache_hits": hits,
@@ -147,6 +148,10 @@ def stats_snapshot():
         "ucp_p50_ms": _percentile(lat, 50),
         "ucp_p95_ms": _percentile(lat, 95),
         "cache_size": len(_search_cache),
+        "matcher_records": len(_MATCH["recs"]) if _MATCH else 0,
+        "match_cards": match_cards,
+        "total_cards": total_cards,
+        "match_rate": round(match_cards / total_cards, 3) if total_cards else None,
     }
 ROBOTS_TXT = (
     "User-agent: *\n"
@@ -225,6 +230,97 @@ def render_index(query):
     return doc.encode("utf-8")
 
 _CURRENCY_SYMBOLS = {"USD": "$", "CAD": "$", "AUD": "$", "GBP": "£", "EUR": "€", "JPY": "¥"}
+
+
+# ---------------------------------------------------------------------------
+# Reference match index (optional): tags result cards with the canonical
+# reference entry they match (a "matched: 1988 Happy Holidays Barbie Doll #1703"
+# badge). Drop master.json / stock-numbers.json / aliases.json into data/
+# (shapes in data/README.md) and the feature switches on; without them it is
+# silently off. Matching is precision-first: an alias must cover the listing
+# *title*, and a stock number alone never matches — manufacturers reuse stock
+# numbers across decades, so a stock hit also needs the record's year or its
+# identifying name words somewhere in the listing text.
+# ---------------------------------------------------------------------------
+
+MATCH_INDEX_DIR = os.environ.get("MATCH_INDEX_DIR", os.path.join(HERE, "data"))
+_MATCH_TOKEN_RE = re.compile(r"[^a-z0-9]+")
+
+
+def _match_norm(text):
+    """Listing text -> ordered normalized token string: lowercased alphanumeric
+    runs, digit runs zero-stripped ("#01703" -> "1703") to mirror the index's
+    stock normalization."""
+    return " ".join(str(int(t)) if t.isdigit() else t
+                    for t in _MATCH_TOKEN_RE.split((text or "").lower()) if t)
+
+
+def _match_tokens(text):
+    return set(_match_norm(text).split())
+
+
+def _load_match_index(path=MATCH_INDEX_DIR):
+    """Build the in-memory matcher from the three index files; None if absent/bad."""
+    try:
+        with open(os.path.join(path, "master.json"), encoding="utf-8") as f:
+            master = json.load(f)
+        with open(os.path.join(path, "stock-numbers.json"), encoding="utf-8") as f:
+            stock = json.load(f)
+        with open(os.path.join(path, "aliases.json"), encoding="utf-8") as f:
+            aliases = json.load(f)
+    except (OSError, ValueError):
+        return None
+    stop = set(domain.MATCH_STOPWORDS)
+    recs = {}
+    for rid, m in master.items():
+        name = m.get("name") or m.get("full_name") or ""
+        year = str(m.get("year") or "")
+        recs[rid] = {
+            "name": name,
+            "stock": m.get("stock_number"),
+            "year": year,
+            # Name words that actually identify the record (brand/stop words and
+            # the year dropped) — the corroboration a bare stock number needs.
+            "sig": frozenset(_match_tokens(name) - stop - {year}),
+        }
+    # Longest alias first so the most specific match wins.
+    alias_sets = sorted(((frozenset(_match_tokens(a)), ids) for a, ids in aliases.items()),
+                        key=lambda kv: -len(kv[0]))
+    return {"recs": recs, "aliases": alias_sets,
+            "stock": {k.lower(): ids for k, ids in stock.items()},
+            "neg": tuple(_match_norm(t) for t in domain.MATCH_NEGATIVE_TERMS)}
+
+
+_MATCH = _load_match_index()
+sys.stderr.write(f"  matcher: {len(_MATCH['recs'])} reference records loaded\n" if _MATCH
+                 else f"  matcher: no index at {MATCH_INDEX_DIR} (matched badges off)\n")
+
+
+def match_reference(title, desc=""):
+    """The reference entry this listing matches -> badge text "name #stock", or None."""
+    if not _MATCH:
+        return None
+    title_norm = _match_norm(title)
+    # Merchandise *about* a doll (ornament, mug, poster...) never gets a badge.
+    if any(f" {t} " in f" {title_norm} " for t in _MATCH["neg"]):
+        return None
+    title_toks = set(title_norm.split())
+    all_toks = title_toks | _match_tokens(desc)
+    alias_ids = next((ids for toks, ids in _MATCH["aliases"] if toks <= title_toks), [])
+    stock_ids = []
+    for tok in all_toks:
+        for rid in _MATCH["stock"].get(tok, ()):
+            r = _MATCH["recs"][rid]
+            if (r["year"] and r["year"] in all_toks) or (r["sig"] and r["sig"] <= all_toks):
+                stock_ids.append(rid)
+    # Alias + stock agreement beats alias alone beats stock alone.
+    rid = (next((i for i in alias_ids if i in stock_ids), None)
+           or (alias_ids[0] if alias_ids else None)
+           or (stock_ids[0] if stock_ids else None))
+    if not rid:
+        return None
+    r = _MATCH["recs"][rid]
+    return f"{r['name']} #{r['stock']}" if r["stock"] else r["name"]
 
 
 # ---------------------------------------------------------------------------
@@ -371,6 +467,7 @@ def _card_from_product(p):
         "rating": (p.get("rating") or {}).get("value"),
         "desc": desc_full[:600],
         "sponsored": _seller_sponsored(seller),
+        "matched": match_reference(p.get("title") or "", desc_full),
     }
 
 
@@ -387,6 +484,12 @@ def normalize(raw):
         if not any(term in (card["title"] + " " + card["desc"]).lower() for term in domain.BRAND_TERMS):
             continue
         cards.append(card)
+    if _MATCH and cards:
+        # Matcher hit-rate over cards actually served (cache misses only —
+        # cached payloads carry their matched badges without re-counting).
+        with _stats_lock:
+            _stats["total_cards"] += len(cards)
+            _stats["match_cards"] += sum(1 for c in cards if c["matched"])
     pagination = result.get("pagination") or {}
     next_cursor = pagination.get("cursor") if pagination.get("has_next_page") else None
     return {

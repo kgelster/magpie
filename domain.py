@@ -36,6 +36,18 @@ SEARCH_INTENT = "Barbie collector shopping"
 # these keep the *results* on-topic.
 BRAND_TERMS = ("barbie", "mattel")
 
+# Reference match index (see app.py "reference match index"): name words too
+# generic to corroborate a stock-number match on their own — brand terms plus
+# the hobby's nouns and filler that appear in nearly every listing title.
+MATCH_STOPWORDS = ("barbie", "mattel", "doll", "dolls", "the", "a", "an", "and", "of")
+
+# Titles containing any of these (word-boundary phrases) never get a matched
+# badge: they're merchandise *about* a doll, not the doll a reference record
+# describes (same merch classes as the POPULAR_QUERIES accuracy bar below).
+MATCH_NEGATIVE_TERMS = ("ornament", "figurine", "music box", "advertisement", "print ad",
+                        "poster", "magazine", "costume", "funko", "mug", "keychain",
+                        "shirt", "plate", "pin", "sticker", "book")
+
 # Merchant ban list: results from these sellers are hidden everywhere (search +
 # quick-view). Each entry is a lowercase substring matched against the seller's
 # myshopify domain, its custom-domain host, and its name — so "sell4value"

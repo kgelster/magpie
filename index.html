@@ -363,6 +363,12 @@
     border-radius: 4px; background: var(--paper); color: var(--ink); font-family: var(--mono);
     font-size: 9px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
     vertical-align: middle; }
+  /* Reference-match badge: the API matched this listing to a canonical entry in
+     the site's reference catalog (e.g. "matched: 1988 Happy Holidays Barbie Doll
+     #1703"). Rendered whenever the API sets card.matched; always visible. */
+  .match { font-family: var(--mono); font-size: 9.5px; font-weight: 500; letter-spacing: .06em;
+    color: var(--bronze); text-transform: none; }
+  #qv-house .match { margin-left: 8px; }
   .card .name { font-family: var(--serif); font-size: 16px; line-height: 1.2; }
   .card .name-link { color: inherit; text-decoration: none; }
   .card .name-link:hover { color: var(--pink-deep); text-decoration: underline; text-underline-offset: 2px; }
@@ -1239,6 +1245,7 @@ function cardHTML(c) {
     ${cardImg}
     <div class="card-body">
       <div class="house">${esc(c.seller_name || '')}${c.sponsored ? '<span class="spon">Sponsored</span>' : ''}</div>
+      ${c.matched ? `<div class="match" title="Matched to a reference catalog entry">matched: ${esc(c.matched)}</div>` : ''}
       <div class="name">${title}</div>
       <div class="price">${esc(c.price_display)}</div>
       ${c.rating != null ? `<div class="rate">${starmarks(c.rating)}</div>` : ''}
@@ -1337,6 +1344,8 @@ function fillQuick(c) {
   const qvHouse = document.getElementById('qv-house');
   qvHouse.textContent = c.seller_name || '';
   if (c.sponsored) qvHouse.insertAdjacentHTML('beforeend', '<span class="spon">Sponsored</span>');
+  if (c.matched) qvHouse.insertAdjacentHTML('beforeend',
+    `<span class="match" title="Matched to a reference catalog entry">matched: ${esc(c.matched)}</span>`);
   document.getElementById('qv-title').textContent = c.title || '';
   document.getElementById('qv-price').textContent = c.price_display || '';
   document.getElementById('qv-rate').textContent = c.rating != null ? starmarks(c.rating) : '';

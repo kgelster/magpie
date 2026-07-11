@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 .DS_Store
 shopify_env/
+data/*.json
