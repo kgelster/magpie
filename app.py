@@ -172,6 +172,10 @@ def _build_sitemap():
     for term in domain.POPULAR_QUERIES:
         loc = f"{domain.SITE_ORIGIN}/?q={quote(term)}"
         rows.append(f"  <url><loc>{loc}</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>")
+    # Reference pages: exactly the routed set (pilot list), nothing thinner.
+    for slug in sorted(_PAGES):
+        rows.append(f"  <url><loc>{domain.SITE_ORIGIN}/doll/{quote(slug)}</loc>"
+                    f"<changefreq>weekly</changefreq><priority>0.8</priority></url>")
     # Canonical reference-catalog deep-links (curated records only — auto-created
     # stubs stay out so a breadth census can't flood the sitemap with thin pages).
     if _MATCH:
@@ -316,6 +320,357 @@ sys.stderr.write(f"  matcher: {len(_MATCH['recs'])} reference records loaded\n" 
 _EXCLUDE_BRANDS = tuple(_match_norm(t) for t in domain.EXCLUDE_BRAND_TERMS)
 
 
+# ---------------------------------------------------------------------------
+# Reference pages (/doll/<slug>): server-rendered collector-record pages from
+# data/pages.json (enriched records exported by the data pipeline). Which slugs
+# route is domain.REFERENCE_PILOT_SLUGS's call; without pages.json the feature
+# is silently off, exactly like the matcher. Design contract: DESIGN.md +
+# DESIGN-REFERENCE-PAGES.md (tokens come from /riso.css — no hex here).
+# ---------------------------------------------------------------------------
+
+def _load_pages(path=MATCH_INDEX_DIR):
+    """slug -> page record for routed slugs; {} when pages.json is absent/bad."""
+    try:
+        with open(os.path.join(path, "pages.json"), encoding="utf-8") as f:
+            pages = json.load(f)
+    except (OSError, ValueError):
+        return {}
+    pilot = set(domain.REFERENCE_PILOT_SLUGS)
+    if pilot:
+        missing = pilot - pages.keys()
+        if missing:
+            sys.stderr.write(f"  reference pages: {len(missing)} pilot slugs not in pages.json: "
+                             f"{sorted(missing)[:3]}...\n")
+        pages = {s: p for s, p in pages.items() if s in pilot}
+    for slug, p in pages.items():
+        p["slug"] = slug
+    return pages
+
+
+_PAGES = _load_pages()
+sys.stderr.write(f"  reference pages: {len(_PAGES)} routed at /doll/<slug>\n" if _PAGES
+                 else "  reference pages: no pages.json (routes off)\n")
+
+
+def _page_siblings(page):
+    """Routed line-mates (incl. the page itself) for the 'Collect the line' rail,
+    oldest first. Empty when the doll is alone in its line — rail doesn't render."""
+    sibs = [p for p in _PAGES.values() if p["line"] and p["line"] == page["line"]]
+    sibs.sort(key=lambda p: (p.get("year") or 0, p.get("stock_number") or "", p["slug"]))
+    return sibs if len(sibs) > 1 else []
+
+
+_MONTHS = ("JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC")
+
+
+def _prov_chip(page):
+    """Mono-caps provenance line. Ink text, deliberately not a status color:
+    verification is a fact about the record, not an operation outcome."""
+    if page.get("verified"):
+        chip = f"VERIFIED · {page['sources_n']} SOURCES"
+    else:
+        chip = "SINGLE-SOURCE RECORD"
+    checked = page.get("checked") or ""
+    m = re.match(r"(\d{4})-(\d{2})", checked)
+    if m:
+        chip += f" · CHECKED {_MONTHS[int(m.group(2)) - 1]} {m.group(1)}"
+    return chip
+
+
+def _fact_rows(page):
+    """(term, value) rows for the Collector record <dl>. A missing field omits
+    its row — never 'N/A' filler. Year is the Class A year, always."""
+    rows = []
+
+    def add(term, value):
+        if value not in (None, "", []):
+            rows.append((term, str(value)))
+
+    add("Year", page.get("year"))
+    stock = page.get("stock_number")
+    if stock and page.get("other_skus"):
+        stock = f"{stock} (also {', '.join(page['other_skus'])})"
+    add("Stock number", stock)
+    add("Line", page.get("line"))
+    add("Designer", page.get("designer"))
+    add("Label / edition", page.get("label_tier"))
+    if page.get("edition_size"):
+        add("Edition size", f"{page['edition_size']:,} pieces")
+    add("Body type", page.get("body_type"))
+    add("Character", page.get("character"))
+    add("Segment", (page.get("segment") or "").capitalize())
+    hair = ", ".join(x for x in (page.get("hair_color"), page.get("hair_style")) if x)
+    add("Hair", hair)
+    add("Outfit", page.get("outfit"))
+    add("Accessories", ", ".join(page.get("accessories") or []))
+    if page.get("msrp_original"):
+        add("Original retail price", f"{page['msrp_original']} (at release)")
+    return rows
+
+
+def _doll_json_ld(page, canonical):
+    """BreadcrumbList + ItemPage only. Prohibited here by design contract:
+    FAQPage, Product offers, any price property, AggregateRating."""
+    crumbs = [{"@type": "ListItem", "position": 1, "name": domain.SITE_NAME,
+               "item": domain.SITE_ORIGIN + "/"}]
+    if page.get("line"):
+        crumbs.append({"@type": "ListItem", "position": 2, "name": page["line"],
+                       "item": f"{domain.SITE_ORIGIN}/?q={quote(page['line'])}"})
+    crumbs.append({"@type": "ListItem", "position": len(crumbs) + 1, "name": page["name"]})
+    item_page = {
+        "@type": "ItemPage",
+        "url": canonical,
+        "name": page.get("seo_title") or page["name"],
+        "description": page.get("meta_description") or "",
+        "isPartOf": {"@type": "WebSite", "name": domain.SITE_NAME, "url": domain.SITE_ORIGIN},
+    }
+    if page.get("checked"):
+        item_page["dateModified"] = page["checked"]
+    return json.dumps([{"@context": "https://schema.org", "@type": "BreadcrumbList",
+                        "itemListElement": crumbs},
+                       {"@context": "https://schema.org", **item_page}], ensure_ascii=False)
+
+
+# Reference-page chrome styles: tokens come from /riso.css; component rules here
+# reference var(--*) only (QA gate: no raw hex in this template).
+_DOLL_CSS = """
+  * { box-sizing: border-box; }
+  html { -webkit-font-smoothing: antialiased; }
+  body { margin: 0; background: var(--porcelain); color: var(--ink);
+    font-family: var(--sans); font-size: 16px; line-height: 1.5; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 32px; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .mono { font-family: var(--mono); font-size: 12px; font-weight: 500;
+    letter-spacing: .05em; text-transform: uppercase; }
+
+  header.site { border-bottom: 1px solid var(--line); }
+  header.site .wrap { display: flex; align-items: baseline; justify-content: space-between;
+    padding-top: 16px; padding-bottom: 16px; }
+  .wordmark { font-weight: 700; font-size: 20px; color: var(--pink-deep);
+    text-shadow: 2px 2px 0 var(--tint); text-decoration: none; }
+  .searchlink { color: var(--pink-deep); text-decoration: underline;
+    text-decoration-color: var(--pink); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+  .searchlink:hover { background: var(--pink); color: var(--ink); text-decoration: none; }
+
+  nav.crumb { margin: 24px 0 0; color: var(--ink-soft); }
+  nav.crumb ol { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  nav.crumb a { color: var(--pink-deep); }
+  nav.crumb .sep { color: var(--ink-soft); }
+
+  .rec-head { position: relative; overflow: hidden; padding: 24px 0 8px; }
+  .rec-head .bigstock { position: absolute; right: -8px; top: 0; z-index: 0;
+    font-family: var(--mono); font-weight: 300; font-size: clamp(80px, 18vw, 160px);
+    line-height: 1; color: var(--tint); user-select: none; pointer-events: none; }
+  .rec-head .eyebrow, .rec-head h1, .rec-head .subline { position: relative; z-index: 1; }
+  .rec-head h1 { font-size: 32px; font-weight: 700; color: var(--pink-deep);
+    text-shadow: 3px 3px 0 var(--tint); margin: 8px 0; }
+  .rec-head .subline { margin: 0 0 16px; }
+
+  .prov { display: inline-block; background: var(--paper); border: 1px solid var(--line);
+    border-radius: 4px; padding: 4px 12px; margin: 0 0 24px; }
+
+  h2 { font-size: 24px; font-weight: 700; color: var(--pink-deep); margin: 32px 0 12px; }
+  h3 { font-size: 20px; font-weight: 500; color: var(--pink-deep); margin: 24px 0 8px; }
+  .prose, .faq { max-width: 68ch; }
+
+  dl.facts { background: var(--paper); border: 1px solid var(--line); border-radius: 8px;
+    margin: 0; padding: 8px 24px; }
+  dl.facts > div { display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  dl.facts > div:last-child { border-bottom: 0; }
+  dl.facts dt { flex: 0 0 160px; color: var(--ink-soft); padding-top: 2px; }
+  dl.facts dd { margin: 0; }
+  @media (max-width: 640px) {
+    dl.facts > div { flex-direction: column; gap: 4px; }
+    dl.facts dt { flex: none; }
+    .wrap { padding: 0 16px; }
+    .rec-head .bigstock { font-size: 80px; }
+  }
+
+  .listings { min-height: 380px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+  .lcard { display: flex; flex-direction: column; background: var(--paper);
+    border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .lcard .img { aspect-ratio: 4/5; background: var(--porcelain); }
+  .lcard .img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .lcard .body { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .lcard .seller { color: var(--ink-soft); }
+  .lcard .title { font-size: 16px; line-height: 1.25; }
+  .lcard .title a { color: var(--ink); text-decoration: none; }
+  .lcard .title a:hover { color: var(--pink-deep); text-decoration: underline; text-underline-offset: 2px; }
+  .lcard .price { color: var(--pink-deep); margin-top: auto; padding-top: 8px; }
+  .lcard .sponsored { align-self: flex-start; background: var(--paper); border: 1px solid var(--ink);
+    border-radius: 4px; padding: 1px 6px; margin-top: 4px; }
+  .empty { color: var(--ink-soft); }
+  .empty a { color: var(--pink-deep); text-decoration: underline;
+    text-decoration-color: var(--pink); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+  .sk { border-radius: 8px; border: 1px solid var(--line); background: var(--paper); height: 340px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .sk { animation: pulse 1.2s ease-in-out infinite alternate; }
+    @keyframes pulse { from { opacity: 1; } to { opacity: .55; } }
+  }
+
+  .rail { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 12px; }
+  .rail a { flex: 0 0 auto; background: var(--paper); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 4px; padding: 8px 12px; text-decoration: none; }
+  .rail a[aria-current="page"] { background: var(--pink); border-color: var(--ink); }
+  .rail a:hover { border-color: var(--ink); }
+
+  footer.site { margin: 48px 0 32px; border-top: 1px solid var(--line); padding-top: 24px;
+    color: var(--ink-soft); font-size: 14px; }
+  footer.site nav { margin-top: 12px; display: flex; gap: 24px; }
+  footer.site a { color: var(--pink-deep); }
+"""
+
+
+def render_doll(page):
+    """One reference page -> full HTML. Server-rendered and complete without JS;
+    the live-listings section hydrates client-side (progressive enhancement)."""
+    e = html.escape
+    canonical = f"{domain.SITE_ORIGIN}/doll/{page['slug']}"
+    name = page["name"] or ""
+    title = page.get("seo_title") or f"{name} | {domain.SITE_NAME}"
+    meta_desc = page.get("meta_description") or ""
+
+    crumb_line = ""
+    if page.get("line"):
+        crumb_line = (f'<li><a href="/?q={quote(page["line"])}">{e(page["line"])}</a></li>'
+                      f'<li aria-hidden="true" class="sep">›</li>')
+    facts = "\n".join(
+        f'      <div><dt>{e(t)}</dt><dd>{e(v)}</dd></div>' for t, v in _fact_rows(page))
+
+    subline = e(page["line"] or "")
+    if page.get("designer"):
+        subline += f" — designed by {e(page['designer'])}"
+
+    faq_html = ""
+    if page.get("faq"):
+        qa = "\n".join(f"    <h3>{e(f['q'])}</h3>\n    <p>{e(f['a'])}</p>"
+                       for f in page["faq"] if f.get("q") and f.get("a"))
+        if qa:
+            faq_html = f'  <section class="faq">\n  <h2>{e(domain.REF_H_FAQ)}</h2>\n{qa}\n  </section>'
+
+    rail_html = ""
+    sibs = _page_siblings(page)
+    if sibs:
+        pills = []
+        for s in sibs:
+            label = e(f"{s.get('year') or ''} #{s.get('stock_number') or ''}".strip())
+            cur = ' aria-current="page"' if s["slug"] == page["slug"] else ""
+            pills.append(f'    <a class="mono" href="/doll/{quote(s["slug"])}"'
+                         f'{cur} aria-label="{e(s["name"] or "")}">{label}</a>')
+        rail_html = (f'  <section aria-label="{e(domain.REF_H_LINE)}">\n'
+                     f'  <h2>{e(domain.REF_H_LINE)}</h2>\n'
+                     f'  <div class="rail">\n' + "\n".join(pills) + "\n  </div>\n  </section>")
+
+    notes_html = ""
+    if page.get("collector_notes"):
+        notes_html = (f'  <section class="prose">\n  <h2>{e(domain.REF_H_NOTES)}</h2>\n'
+                      f'  <p>{e(page["collector_notes"])}</p>\n  </section>')
+
+    return f"""<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{e(title)}</title>
+<meta name="description" content="{e(meta_desc)}">
+<link rel="canonical" href="{canonical}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{e(domain.SITE_NAME)}">
+<meta property="og:title" content="{e(title)}">
+<meta property="og:description" content="{e(meta_desc)}">
+<meta property="og:url" content="{canonical}">
+<meta property="og:image" content="{domain.SITE_ORIGIN}/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Overpass+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/riso.css">
+<style>{_DOLL_CSS}</style>
+<script type="application/ld+json">{_doll_json_ld(page, canonical)}</script>
+</head>
+<body>
+<header class="site"><div class="wrap">
+  <a class="wordmark" href="/" aria-label="{e(domain.SITE_NAME)} home">{e(domain.SITE_NAME)}</a>
+  <a class="searchlink" href="/?q={quote(name)}">{e(domain.REF_SEARCH_LINK)}</a>
+</div></header>
+<main class="wrap">
+  <nav class="crumb mono" aria-label="Breadcrumb"><ol>
+    <li><a href="/">{e(domain.SITE_NAME)}</a></li>
+    <li aria-hidden="true" class="sep">›</li>
+    {crumb_line}
+    <li aria-current="page">{e(name)}</li>
+  </ol></nav>
+  <div class="rec-head">
+    <span class="bigstock" aria-hidden="true">#{e(page.get("stock_number") or "")}</span>
+    <p class="eyebrow mono">{e(str(page.get("year") or ""))} · #{e(page.get("stock_number") or "")}</p>
+    <h1>{e(name)}</h1>
+    <p class="subline">{subline}</p>
+  </div>
+  <p class="prov mono">{e(_prov_chip(page))}</p>
+  <section class="prose">
+    <p>{e(page.get("description") or "")}</p>
+  </section>
+  <section>
+  <h2>{e(domain.REF_H_FACTS)}</h2>
+  <dl class="facts">
+{facts}
+  </dl>
+  </section>
+{notes_html}
+{faq_html}
+  <section class="listings" aria-label="{e(domain.REF_H_LISTINGS)}">
+  <h2>{e(domain.REF_H_LISTINGS)}</h2>
+  <div id="listings" class="grid" aria-live="polite"><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
+  </section>
+{rail_html}
+  <footer class="site">
+    <p>{e(domain.REF_DISCLAIMER)}</p>
+    <nav><a href="/">{e(domain.REF_SEARCH_LINK)}</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav>
+  </footer>
+</main>
+<script>
+(function () {{
+  var box = document.getElementById('listings');
+  var q = {json.dumps(name)};
+  var here = location.pathname;
+  var esc = function (s) {{ var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }};
+  function collapse() {{ box.closest('.listings').style.minHeight = '0'; }}
+  function empty() {{
+    collapse();
+    box.classList.remove('grid');
+    box.innerHTML = '<p class="empty">' + esc({json.dumps(domain.REF_EMPTY_LISTINGS)}) +
+      ' <a href="/?q=' + encodeURIComponent(q) + '">' + esc({json.dumps(domain.REF_EMPTY_CTA)}) + '</a></p>';
+  }}
+  fetch('/api/search?query=' + encodeURIComponent(q))
+    .then(function (r) {{ return r.json(); }})
+    .then(function (d) {{
+      var cards = (d.cards || []).filter(function (c) {{ return c.matched_page === here; }}).slice(0, 8);
+      if (!cards.length) {{ empty(); return; }}
+      box.innerHTML = cards.map(function (c) {{
+        var pdp = /^https:\\/\\//.test(c.pdp || '') ? c.pdp : null;
+        return '<article class="lcard">' +
+          '<div class="img">' + (pdp ? '<a href="' + esc(pdp) + '" rel="nofollow noopener" tabindex="-1" aria-hidden="true">' : '') +
+            '<img src="' + esc(c.img) + '" alt="" loading="lazy">' + (pdp ? '</a>' : '') + '</div>' +
+          '<div class="body">' +
+            (c.sponsored ? '<span class="sponsored mono">Sponsored</span>' : '') +
+            '<span class="seller mono">' + esc(c.seller_name) + '</span>' +
+            '<span class="title">' + (pdp ? '<a href="' + esc(pdp) + '" rel="nofollow noopener">' : '') +
+              esc(c.title) + (pdp ? '</a>' : '') + '</span>' +
+            '<span class="price">' + esc(c.price_display || '') + '</span>' +
+          '</div></article>';
+      }}).join('');
+    }})
+    .catch(function () {{
+      collapse();
+      box.classList.remove('grid');
+      box.innerHTML = '<p class="empty">' + esc({json.dumps(domain.REF_LISTINGS_ERROR)}) + '</p>';
+    }});
+}})();
+</script>
+</body></html>
+"""
+
+
 def _suggest_entries():
     """Search-box autocomplete entries from the reference catalog, served at
     /api/suggest: one row per unique record name (ethnicity variants sharing a
@@ -334,7 +689,8 @@ def _suggest_entries():
 
 def _build_llms_txt():
     """/llms.txt (llmstxt.org convention): domain.LLMS_INTRO plus one line per
-    curated catalog record linking to its live search deep-link."""
+    curated catalog record — linked to its reference page when one is routed,
+    to its live search deep-link otherwise."""
     out = domain.LLMS_INTRO.rstrip() + "\n"
     rows = []
     if _MATCH:
@@ -343,7 +699,11 @@ def _build_llms_txt():
                 continue
             facts = ", ".join(x for x in (str(r["year"] or ""), r["line"] and f"{r['line']} line",
                                           r["stock"] and f"stock #{r['stock']}") if x)
-            row = f"- [{r['name']}]({domain.SITE_ORIGIN}/?q={quote(r['name'])})" + (f": {facts}" if facts else "")
+            if r["slug"] in _PAGES:
+                url = f"{domain.SITE_ORIGIN}/doll/{quote(r['slug'])}"
+            else:
+                url = f"{domain.SITE_ORIGIN}/?q={quote(r['name'])}"
+            row = f"- [{r['name']}]({url})" + (f": {facts}" if facts else "")
             if row not in rows:                      # variants sharing a name keep the first row
                 rows.append(row)
     if rows:
@@ -809,6 +1169,17 @@ class Handler(BaseHTTPRequestHandler):
             q = (parse_qs(parsed.query).get("q") or [""])[0]
             self._send_bytes(render_index(q), "text/html; charset=utf-8",
                              cache_control="public, max-age=300")
+        elif route == "/riso.css":
+            self._send_file(os.path.join(HERE, "riso.css"), "text/css; charset=utf-8",
+                            cache_control="public, max-age=3600")
+        elif route.startswith("/doll/"):
+            page = _PAGES.get(route[len("/doll/"):])
+            if page:
+                self._send_bytes(render_doll(page).encode("utf-8"),
+                                 "text/html; charset=utf-8",
+                                 cache_control="public, max-age=300")
+            else:
+                self._send_not_found()
         elif route == "/og-image.png":
             self._send_file(os.path.join(HERE, "og-image.png"), "image/png",
                             cache_control="public, max-age=86400")

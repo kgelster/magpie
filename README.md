@@ -74,6 +74,12 @@ The engine is small but production-hardened (it runs dollscout.com):
 - **Reference match index (optional)**: drop three JSON files into `data/` and every
   result whose listing matches a canonical entry in your reference catalog gets a
   "matched: …" badge (see below)
+- **Reference pages (optional)**: drop `pages.json` into `data/` and the engine
+  server-renders a collector-record page per entry at `/doll/<slug>` — fact table,
+  prose, FAQ, live matched listings, line rail, BreadcrumbList+ItemPage JSON-LD —
+  and adds them to the sitemap and `/llms.txt`. Gate the routed set with
+  `domain.REFERENCE_PILOT_SLUGS`; matched badges link to these pages once
+  `domain.REFERENCE_PAGE_BASE` is set
 
 ## Quickstart
 
@@ -106,6 +112,8 @@ browser (index.html) → /api/search → app.py builds UCP input
 | `domain.py` | **The entire domain configuration.** Brand terms, query anchor, taxonomy chips, popular queries, site origin, meta templates. Retargeting starts here. |
 | `index.html` | Single-file vanilla-JS UI. Brand copy is isolated in six fenced `BRAND BLOCK` regions. |
 | `DESIGN.md` | Design system for the 2026-07 riso rebrand: tokens (with measured contrast), component rules, a11y acceptance criteria, QA checklist. Read before any visual change. |
+| `DESIGN-REFERENCE-PAGES.md` | Design spec for the `/doll/<slug>` reference pages (anatomy, states, JSON-LD rules, QA). |
+| `riso.css` | The `:root` design tokens — the single source of every hex value, linked by `index.html` and the reference pages. |
 | `privacy.html`, `terms.html` | DollScout's real legal pages. **Replace with your own** (see RETARGETING.md). |
 | `og-image.png` | 1200×630 social share card. Replace with your own. |
 | `Dockerfile`, `fly.toml` | Fly.io deployment (Node for the CLI + Python for the app in one image). |
@@ -136,6 +144,7 @@ them the feature is silently off:
 | `master.json` | `{id: {name, year, stock_number, ...}}` — one entry per canonical item |
 | `stock-numbers.json` | `{normalized_stock: [ids]}` — digits zero-stripped, alpha uppercased |
 | `aliases.json` | `{lowercased alias: [ids]}` — each alias should carry year + name |
+| `pages.json` (optional) | `{slug: {name, year, facts..., description, faq...}}` — enables the `/doll/<slug>` reference pages |
 
 Matching is deliberately precision-first: an alias must cover the listing **title**
 (token-subset, word order free), and a stock number alone never matches — manufacturers

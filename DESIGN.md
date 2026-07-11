@@ -8,16 +8,19 @@ Conflict order, always: accessibility > token consistency > aesthetics.
 
 ## Context and goals
 
-Applies to the DollScout deployment of Magpie (`index.html`, the `app.py` 404 page).
+Applies to the DollScout deployment of Magpie (`index.html`, the `app.py` 404 page,
+and the `/doll/` reference pages — see `DESIGN-REFERENCE-PAGES.md` for that surface).
 The 2026-07 retheme replaced the porcelain/gold/serif look. Implementation strategy:
-the new tokens are mapped onto the legacy CSS variable slots in `:root`, and component
-corrections live in the fenced `RISO RETHEME OVERRIDES` block at the end of `<style>`.
-Change colors in `:root`; change component behavior in the override block; never
-scatter hex values into individual rules.
+the new tokens are mapped onto the legacy CSS variable slots in `:root` (now in
+`riso.css`), and component corrections live in the fenced `RISO RETHEME OVERRIDES`
+block at the end of `<style>`. Change colors in `riso.css`; change component behavior
+in the override block; never scatter hex values into individual rules.
 
 ## Tokens and foundations
 
-Single source of truth is `:root` in `index.html`. Legacy slot → spec token:
+Single source of truth is `:root` in `riso.css` (served at `/riso.css`, linked by
+`index.html` and the `/doll/` reference pages — extracted 2026-07-11 so the new pages
+share one hex source). Legacy slot → spec token:
 
 | Legacy var | Spec token | Value | Role |
 |---|---|---|---|
@@ -101,7 +104,7 @@ primary-fill CTA with ink text. Copy from `domain.NOT_FOUND_*`.
 
 - Contrast (1.4.3/1.4.11): every text pair ≥4.5:1 (≥3:1 large), every meaningful
   non-text element ≥3:1. Test: axe DevTools or the contrast script in repo history;
-  re-run whenever `:root` changes.
+  re-run whenever `riso.css` changes.
 - Focus (2.4.7): tab through hero → controls → cards → modal; every stop shows the
   2px ink outline. Test: keyboard-only pass, no pointer.
 - Keyboard (2.1.1/2.1.2): suggest list arrows/Enter/Esc; facet panels open/close;
@@ -163,7 +166,7 @@ BRAND BLOCK 5/6 (`MSG_*`, `LABEL_*`, `TITLE_*`) and `domain.NOT_FOUND_*`.
 
 ## QA checklist (code review)
 
-- [ ] No new raw hex outside `:root` / the 404 style block.
+- [ ] No new raw hex outside `riso.css` / the 404 style block / the `theme-color` meta.
 - [ ] Any pink background has ink text (or ≥24px/19px-bold white) — grep `--pink` uses.
 - [ ] No `--tint`/`--gold` on text, icons, or meaning-bearing borders.
 - [ ] New paddings/font-sizes on the scale (4/8/12/16/24/32; 12/14/16/20/24/32).

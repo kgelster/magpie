@@ -42,6 +42,47 @@ DEFAULT_CONDITION = ("secondhand",)
 # whose record has a seo_slug becomes a link to its page.
 REFERENCE_PAGE_BASE = ""
 
+# --- Reference pages (/doll/<slug>) ------------------------------------------
+
+# Which pages.json slugs actually get routed. Non-empty = pilot mode (only these
+# route; sitemap + llms.txt list exactly this set). Empty tuple = every record
+# in data/pages.json routes. Pilot 2026-07-11: the complete enriched Holiday
+# Barbie line (closed "Collect the line" rail — every sibling link resolves)
+# plus BFMC 2004 (includes the conflicted-year 45th Anniversary QA case).
+REFERENCE_PILOT_SLUGS = (
+    "1988-happy-holidays-barbie", "1989-happy-holidays-barbie",
+    "1990-happy-holidays-barbie-4098", "1990-happy-holidays-barbie-4543",
+    "1991-happy-holidays-barbie-1871", "1991-happy-holidays-barbie-2696",
+    "1992-happy-holidays-barbie-1429", "1992-happy-holidays-barbie-2396",
+    "1993-happy-holidays-barbie-10824", "1993-happy-holidays-barbie-10911",
+    "1994-happy-holidays-barbie-12155", "1994-happy-holidays-barbie-12156",
+    "1995-happy-holidays-barbie-14123", "1995-happy-holidays-barbie-14124",
+    "1996-happy-holidays-barbie-15646", "1996-happy-holidays-barbie-15647",
+    "1997-happy-holidays-barbie-17832", "1997-happy-holidays-barbie-17833",
+    "1997-happy-holidays-barbie-20416",
+    "1998-happy-holidays-barbie-20200", "1998-happy-holidays-barbie-20201",
+    "2005-holiday-barbie-doll-by-bob-mackie", "2005-holiday-barbie-doll-by-bob-mackie-2",
+    "2005-holiday-barbie-doll-by-bob-mackie-3", "2005-holiday-barbie-doll-by-bob-mackie-4",
+    "2006-holiday-barbie-doll-by-bob-mackie", "2006-holiday-barbie-doll-by-bob-mackie-2",
+    "45th-anniversary-barbie-2004", "chinoiserie-red-midnight-barbie-2004",
+    "chinoiserie-red-moon-barbie-2004", "chinoiserie-red-sunset-barbie-2004",
+)
+
+# Fixed reference-page strings (voice: chrome may be playful; the record itself
+# renders verbatim from pages.json — no template-side paraphrase, and no
+# value-talk anywhere: worth/value/rare are banned tokens on this surface).
+REF_SEARCH_LINK = "Search live listings"
+REF_H_FACTS = "Collector record"
+REF_H_NOTES = "Collector notes"
+REF_H_FAQ = "Questions collectors ask"
+REF_H_LISTINGS = "Live listings for this doll"
+REF_H_LINE = "Collect the line"
+REF_EMPTY_LISTINGS = "None on the market right now. She'll turn up."
+REF_EMPTY_CTA = "Watch the live search"
+REF_LISTINGS_ERROR = "Live listings couldn't load. Refresh to retry."
+REF_DISCLAIMER = ("DollScout is an independent collector reference and is not affiliated with, "
+                  "endorsed by, or sponsored by Mattel, Inc. Barbie is a trademark of Mattel, Inc.")
+
 # --- /llms.txt (AI-crawler guidance, llmstxt.org convention) -----------------
 
 # Served at /llms.txt; app.py appends the reference-catalog section below this.
@@ -59,7 +100,7 @@ the individual merchants.
 """
 
 # Heading for the generated catalog section of /llms.txt.
-LLMS_CATALOG_HEADING = "Canonical doll catalog (each links to its live search)"
+LLMS_CATALOG_HEADING = "Canonical doll catalog (reference page where published, live search otherwise)"
 
 # Relevance guard: keep a result only if its title or description names the
 # brand. Distinct from QUERY_ANCHOR — the anchor keeps the *query* on-topic,

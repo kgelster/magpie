@@ -66,7 +66,8 @@ change it to match your `NOUNS`:
 
 - the mobile sheet apply button: `Show <span id="sheetcount">dolls</span>`
 
-Theme: the `:root` CSS custom-property palette (top of the `<style>` block) and the
+Theme: the `:root` CSS custom-property palette (in `riso.css`, shared by index and
+the `/doll/` reference pages) and the
 Google Fonts `<link>` (Fraunces + Archivo) are your visual levers. Not fenced because
 they're taste, not brand strings.
 
