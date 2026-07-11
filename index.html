@@ -1044,6 +1044,9 @@ const POPULAR = ["Ponytail Barbie", "Bubble Cut Barbie", "Enchanted Evening Barb
 const PH_EXAMPLES = ["Bob Mackie evening gown…", "Happy Holidays Barbie 1995…",
   "Silkstone Fashion Model…", "Malibu Barbie 1971…", "Twist N Turn Barbie…"];
 const BASE_PH = "Search by name, line, designer, or era";
+// Group tag shown on autocomplete rows sourced from /api/suggest (the
+// reference catalog). The rows themselves come from the server.
+const SUGGEST_CATALOG_GROUP = 'Doll';
 // ═══ /BRAND BLOCK 6/6 ═══
 const REDUCE_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let sugItems = [], sugActive = -1, sugHead = '', sugV = '';
@@ -1117,7 +1120,8 @@ function showMatches(v) {
   v = v.trim(); const lv = v.toLowerCase();
   sugActive = -1; sugV = v; sugHead = 'Suggestions';
   sugItems = suggestIndex
-    .filter(s => s.label.toLowerCase().includes(lv) || s.q.toLowerCase().includes(lv))
+    .filter(s => s.label.toLowerCase().includes(lv) || s.q.toLowerCase().includes(lv)
+              || (s.alt && s.alt.toLowerCase().includes(lv)))   // stock numbers, from /api/suggest
     .slice(0, 8);
   renderSuggest();
 }
@@ -1709,10 +1713,20 @@ function buildTryBar() {
   });
 }
 
+// Canonical reference-catalog entries (doll names + stock numbers) join the
+// dropdown after the taxonomy chips. Absent/empty endpoint = chips only.
+async function loadSuggestCatalog() {
+  try {
+    (await (await fetch('/api/suggest')).json()).forEach(e =>
+      suggestIndex.push({ label: e.label, q: e.q, alt: e.alt || '', group: SUGGEST_CATALOG_GROUP }));
+  } catch { /* dropdown still works with taxonomy entries only */ }
+}
+
 // Init: build the filter bar first (chips must exist before we restore chip state
 // from the URL), then restore full state from ?q=/chip/price/available and search.
 (async function init() {
   await loadTaxonomy();
+  loadSuggestCatalog();      // async fill-in; no need to block first paint
   buildTryBar();
   restoreStateFromURL();
   refresh();

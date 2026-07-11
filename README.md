@@ -144,6 +144,11 @@ words in the listing text. Titles containing `domain.MATCH_NEGATIVE_TERMS` (orna
 mugs, posters... merchandise *about* an item) never get a badge. `/api/stats` reports
 `match_rate` over cards served.
 
+The catalog also powers **search autocomplete**: `/api/suggest` serves one entry per
+canonical record (name + stock number as a hidden search alias), and the search box
+merges them into its dropdown under a catalog group tag — typing a stock number like
+`1703` surfaces the doll it belongs to.
+
 The JSONs are gitignored (`data/*.json`) — DollScout's are generated from a private
 database — but `fly deploy` ships them from the local directory context.
 

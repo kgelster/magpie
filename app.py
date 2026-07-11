@@ -299,6 +299,24 @@ sys.stderr.write(f"  matcher: {len(_MATCH['recs'])} reference records loaded\n" 
 _EXCLUDE_BRANDS = tuple(_match_norm(t) for t in domain.EXCLUDE_BRAND_TERMS)
 
 
+def _suggest_entries():
+    """Search-box autocomplete entries from the reference catalog, served at
+    /api/suggest: one row per unique record name (ethnicity variants sharing a
+    name collapse into one), with the stock number as `alt` — searchable but
+    not displayed, so typing "1703" surfaces the doll. [] when no index."""
+    entries, seen = [], set()
+    recs = _MATCH["recs"].values() if _MATCH else ()
+    for r in sorted(recs, key=lambda r: r["name"]):
+        if not r["name"] or r["name"] in seen:
+            continue
+        seen.add(r["name"])
+        entries.append({"label": r["name"], "q": r["name"], "alt": r["stock"] or ""})
+    return entries
+
+
+SUGGEST_ENTRIES = _suggest_entries()
+
+
 def match_reference(title, desc=""):
     """The reference entry this listing matches -> badge text "name #stock", or None."""
     if not _MATCH:
@@ -721,6 +739,9 @@ class Handler(BaseHTTPRequestHandler):
                             cache_control="public, max-age=3600")
         elif route == "/api/taxonomy":
             self._send_json(domain.TAXONOMY, headers={"Cache-Control": "public, max-age=3600"})
+        elif route == "/api/suggest":
+            # Reference-catalog autocomplete entries (no ucp spawn; cheap).
+            self._send_json(SUGGEST_ENTRIES, headers={"Cache-Control": "public, max-age=3600"})
         elif route == "/api/stats":
             self._send_json(stats_snapshot(), headers={"Cache-Control": "no-store"})
         elif route == "/api/search":
