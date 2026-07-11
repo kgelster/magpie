@@ -679,7 +679,9 @@ def _suggest_entries():
     entries, seen = [], set()
     recs = _MATCH["recs"].values() if _MATCH else ()
     for r in sorted(recs, key=lambda r: r["name"]):
-        if not r["name"] or r["name"] in seen:
+        # Stubs stay out (same policy as sitemap/llms.txt): raw feed titles are
+        # too noisy for autocomplete, but they still feed the matcher.
+        if not r["name"] or r["name"] in seen or r["lifecycle"] == "stub":
             continue
         seen.add(r["name"])
         entries.append({"label": r["name"], "q": r["name"], "alt": r["stock"] or "",
