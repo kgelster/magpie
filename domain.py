@@ -90,7 +90,7 @@ TAXONOMY = {
     "Decade": [
         {"label": "1959–60s", "q": "vintage 1960s"},
         {"label": "1970s", "q": "1970s vintage"},
-        {"label": "1980s", "q": "1980s"},
+        {"label": "1980s", "q": "1980s vintage"},  # bare "1980s" pulled 80th-Anniversary dolls (83%→96% with "vintage")
         {"label": "1990s", "q": "1990s"},
         {"label": "2000s", "q": "2000s"},
         {"label": "2010s", "q": "2010s"},
@@ -101,19 +101,20 @@ TAXONOMY = {
         {"label": "Silkstone / Fashion Model", "q": "Silkstone Fashion Model Collection"},
         {"label": "Holiday Barbie", "q": "Holiday Barbie"},
         {"label": "Birthday Wishes", "q": "Birthday Wishes"},
-        {"label": "Dolls of the World", "q": "Dolls of the World"},
-        {"label": "Barbie Looks", "q": "Barbie Looks"},
     ],
-    "Designer": [
-        {"label": "Bob Mackie", "q": "Bob Mackie"},
-        {"label": "Byron Lars", "q": "Byron Lars"},
-        {"label": "Robert Best", "q": "Robert Best"},
-        {"label": "Carlyle Nuera", "q": "Carlyle Nuera"},
-    ],
+    # Removed 2026-07-11 after a per-chip accuracy sweep against live results
+    # (fraction of returned cards actually matching the chip's promise):
+    # - "Designer" group (Bob Mackie / Byron Lars / Robert Best / Carlyle Nuera):
+    #   2-40% for everyone but Mackie — sellers rarely credit the designer in
+    #   listing text, so the catalog backfills with generic dolls.
+    # - "Playline" 0% — the term never appears in listings; the search reads it
+    #   as "play" and returns playsets.
+    # - "Barbie Looks" 46% — bleeds into adjacent Signature fashion lines;
+    #   alternate query phrasings scored worse.
+    # - "Dolls of the World" 68%, "OOAK" 41% (thin results) — moderate drift,
+    #   no query fix found.
     "Type": [
         {"label": "Collector", "q": "collector"},
-        {"label": "Playline", "q": "playline"},
-        {"label": "OOAK", "q": "OOAK one of a kind"},
         {"label": "NRFB", "q": "NRFB new in box"},
     ],
 }
