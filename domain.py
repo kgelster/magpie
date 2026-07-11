@@ -17,6 +17,9 @@ SITE_ORIGIN = "https://www.dollscout.com"
 # Non-canonical public hostnames that 301 to SITE_ORIGIN (host-gated so Fly
 # health checks / direct-IP hits, which use other Host values, pass through).
 REDIRECT_HOSTS = {"dollscout.fly.dev", "dollscout.com"}
+# Google Search Console ownership token (URL-prefix property on SITE_ORIGIN).
+# Served at /<token>.html; GSC re-checks it periodically, so keep it routed.
+GSC_VERIFICATION_TOKEN = "google3dc13d11640e4472"
 
 # --- Search shaping ---------------------------------------------------------
 

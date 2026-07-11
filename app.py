@@ -1193,6 +1193,11 @@ class Handler(BaseHTTPRequestHandler):
         elif route == "/terms":
             self._send_file(os.path.join(HERE, "terms.html"), "text/html; charset=utf-8",
                             cache_control="public, max-age=3600")
+        elif route == "/" + domain.GSC_VERIFICATION_TOKEN + ".html":
+            # Search Console ownership check (see domain.GSC_VERIFICATION_TOKEN).
+            self._send_text("google-site-verification: %s.html\n"
+                            % domain.GSC_VERIFICATION_TOKEN,
+                            "text/html; charset=utf-8")
         elif route == "/robots.txt":
             self._send_text(ROBOTS_TXT, cache_control="public, max-age=3600")
         elif route == "/llms.txt":
