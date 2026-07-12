@@ -176,11 +176,13 @@ def _build_sitemap():
     for slug in sorted(_PAGES):
         rows.append(f"  <url><loc>{domain.SITE_ORIGIN}/doll/{quote(slug)}</loc>"
                     f"<changefreq>weekly</changefreq><priority>0.8</priority></url>")
-    # Canonical reference-catalog deep-links (curated records only — auto-created
-    # stubs stay out so a breadth census can't flood the sitemap with thin pages).
+    # Canonical reference-catalog deep-links. T3 crawl-budget gate: only enriched+
+    # records (those carrying real reference prose) emit ?q= deep-links; the breadth
+    # census (census/corroborated tier) and auto-created stubs stay out so thousands
+    # of thin search-landing pages can't dilute crawl focus away from the /doll/ pilot.
     if _MATCH:
         for r in sorted(_MATCH["recs"].values(), key=lambda r: r["name"]):
-            if not r["name"] or r["name"] in seen or r["lifecycle"] == "stub":
+            if not r["name"] or r["name"] in seen or r["lifecycle"] in ("stub", "census", "corroborated"):
                 continue
             seen.add(r["name"])
             loc = f"{domain.SITE_ORIGIN}/?q={quote(r['name'])}"
