@@ -81,11 +81,18 @@ _cache_lock = threading.Lock()
 _search_cache = OrderedDict()           # key -> (expiry_monotonic, payload); LRU order
 
 
+def _ucp_params(params):
+    # `focus` is a post-search result filter, not part of the UCP request.
+    return {k: v for k, v in params.items() if k != "focus"}
+
+
 def _cache_key(params):
     # Key on the actual UCP request so equivalent queries (e.g. same chips in a
     # different order) share one entry. Pagination cursor is part of the input,
-    # so each page caches separately.
-    return json.dumps(build_ucp_input(**params), sort_keys=True)
+    # so each page caches separately. `focus` changes the filtered output, so it
+    # keys separately.
+    return json.dumps({"ucp": build_ucp_input(**_ucp_params(params)),
+                       "focus": params.get("focus")}, sort_keys=True)
 
 
 def cache_get(key):
@@ -776,6 +783,103 @@ def _expand_stock_query(q):
     return q
 
 
+def _clean_label(r):
+    """Human label for the 'Did you mean' UI. Some vintage records embed their stock in
+    the name ('Malibu Barbie Doll #1067') and carry a composite stock ('1067-1971'), so
+    _badge would read '... #1067 #1067-1971'. Strip any embedded #code from the name and
+    append the stock only when it's a clean code not already shown."""
+    name = re.sub(r"\s*#\S+", "", r["name"]).strip()
+    stk = r["stock"] or ""
+    if stk and "-" not in stk and stk.lower() not in _match_norm(name):
+        return f"{name} #{stk}"
+    return name
+
+
+def _intent(rid):
+    """Compact catalog-record summary for the search 'Did you mean' affordance."""
+    r = _MATCH["recs"][rid]
+    page = (domain.REFERENCE_PAGE_BASE + r["slug"]) if _PAGES and r["slug"] in _PAGES else None
+    return {"id": rid, "name": r["name"], "stock": r["stock"], "year": r["year"] or None,
+            "line": r["line"], "label": _clean_label(r), "page": page}
+
+
+# Barbie-universe characters other than Barbie herself. A listing naming one of these
+# (and not part of the focused doll's own name) is a DIFFERENT doll -- a Malibu Ken must
+# not survive a "Malibu Barbie" focused search.
+FOREIGN_CHARACTERS = frozenset(
+    "ken francie skipper midge christie allan alan ricky kelly stacie stacey todd tutti "
+    "chris pj steven curtis nikki teresa kira jamie whitney becky courtney".split())
+
+
+def _focus_keep(title, desc, rid):
+    """True if a listing genuinely IS the focused doll. Strict on purpose -- a
+    'Did you mean X -> show me X' click should drop gift-set/merch/reissue noise:
+      - no merch term (lanyard, playset, ornament...) in the title;
+      - no FOREIGN character in the title that isn't part of the doll's own name;
+      - the doll's distinctive NAME words (letters only -- stock digits excluded) are
+        all in the title;
+      - the doll's own release YEAR is in the title (stock numbers get reused across
+        years, so the year is the reliable disambiguator)."""
+    if not _MATCH or rid not in _MATCH["recs"]:
+        return True
+    r = _MATCH["recs"][rid]
+    tnorm = _match_norm(title)
+    ttoks = set(tnorm.split())
+    if any(f" {t} " in f" {tnorm} " for t in _MATCH["neg"]):
+        return False
+    name_toks = set(_match_tokens(r["name"]))
+    if any(ct in ttoks and ct not in name_toks for ct in FOREIGN_CHARACTERS):
+        return False
+    sig_words = {t for t in r["sig"] if not t.isdigit()}
+    if not (sig_words and sig_words <= ttoks):
+        return False
+    return bool(r["year"]) and r["year"] in ttoks
+
+
+def resolve_query_intent(query):
+    """Resolve a free-text query to the ONE catalog record the user most likely means,
+    or None. Stricter than the card matcher: only resolves when the intended doll is
+    unambiguous -- an alias whose tokens are all present in the query, corroborated by
+    the query's own year or stock number, OR a specific (3+ token) alias that names
+    exactly one record -- and only when no equally-good record contends. This is what
+    lets a loose query like "Malibu Barbie 1971" point at the vintage doll instead of
+    the grab-bag of gift sets, playsets, and reissues the live listing search returns."""
+    if not _MATCH or not query:
+        return None
+    toks = set(_match_norm(query).split())
+    if not toks:
+        return None
+    # A merch word in the query means the user is shopping for that thing, not a doll.
+    if any(f" {t} " in f" {' '.join(toks)} " for t in _MATCH["neg"]):
+        return None
+    recs = _MATCH["recs"]
+    # Candidate records: any alias whose tokens are a subset of the query (aliases are
+    # pre-sorted longest-first, so the most specific alias is seen first per record).
+    cands, seen = [], set()
+    for a_toks, ids in _MATCH["aliases"]:
+        if a_toks <= toks:
+            for rid in ids:
+                if rid not in seen:
+                    seen.add(rid)
+                    cands.append((len(a_toks), rid))
+    if not cands:
+        return None
+
+    def corrob(rid):
+        r = recs[rid]
+        return (1 if r["year"] and r["year"] in toks else 0) \
+             + (1 if r["stock"] and r["stock"].lower() in toks else 0)
+
+    best_alen, best_rid = max(cands, key=lambda al_rid: (corrob(al_rid[1]), al_rid[0]))
+    best_score = corrob(best_rid)
+    # Confident only with corroboration or a specific alias, AND no equally-good rival.
+    if best_score >= 1 or best_alen >= 3:
+        rivals = {rid for alen, rid in cands if corrob(rid) == best_score and alen == best_alen}
+        if len(rivals) == 1:
+            return _intent(best_rid)
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Pure functions (unit-testable without a running server or the ucp CLI)
 # ---------------------------------------------------------------------------
@@ -1016,12 +1120,30 @@ def _note_unmatched(query, cards):
 
 
 def search(params):
-    """Glue: params dict -> normalized payload or {error}."""
-    raw = run_ucp_search(build_ucp_input(**params))
+    """Glue: params dict -> normalized payload or {error}.
+
+    Two accuracy affordances layer on top of the raw listing search:
+      - did_you_mean: when a loose query resolves to one specific catalog doll, offer it.
+      - focus: when the client asks to focus on a resolved doll, keep only listings that
+        genuinely ARE that doll (drops the gift-set/merch/reissue grab-bag)."""
+    focus = params.get("focus")
+    orig_query = params.get("query")
+    raw = run_ucp_search(build_ucp_input(**_ucp_params(params)))
     if isinstance(raw, dict) and raw.get("error"):
         return raw
     result = normalize(raw)
-    _note_unmatched(params.get("query"), result["cards"])
+    if focus:
+        result["cards"] = [c for c in result["cards"]
+                           if _focus_keep(c["title"], c.get("desc", ""), focus)]
+        result["total_count"] = len(result["cards"])
+        result["next_cursor"] = None            # focused view is one curated page
+        if _MATCH and focus in _MATCH["recs"]:
+            result["focused"] = _intent(focus)
+    else:
+        dym = resolve_query_intent(orig_query)
+        if dym:
+            result["did_you_mean"] = dym
+    _note_unmatched(orig_query, result["cards"])
     return result
 
 
@@ -1107,6 +1229,7 @@ def _parse_search_query(qs):
                       if c in ("new", "secondhand")],
         "cursor": (qs.get("cursor") or [None])[0] or None,
         "like": (qs.get("like") or [None])[0] or None,
+        "focus": (qs.get("focus") or [None])[0] or None,
     }
 
 

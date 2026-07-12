@@ -359,6 +359,18 @@
   .modal-line { margin: 2px 0 10px; font-family: var(--mono); font-size: 10.5px; }
   .modal-line .line-head { color: var(--bronze); font-weight: 600; letter-spacing: .06em; margin-right: 4px; }
   .modal-line .rescue-btn { margin: 0 2px 4px 0; }
+  /* "Did you mean" / focused-search banner above the results count */
+  .dym { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 0 0 10px;
+    padding: 8px 12px; background: var(--paper); border: 1px solid var(--ink); border-radius: 8px;
+    font-family: var(--serif); font-size: 14px; }
+  .dym.focused { background: var(--pink); }
+  .dym b { font-weight: 700; }
+  .dym-go, .dym-clear { background: var(--pink-deep); color: #fff; border: 1px solid var(--pink-deep);
+    border-radius: 6px; padding: 4px 12px; font-family: var(--mono); font-size: 11px; font-weight: 600;
+    letter-spacing: .05em; cursor: pointer; }
+  .dym-clear { background: var(--paper); color: var(--ink); border-color: var(--ink); }
+  .dym-go:hover { background: var(--ink); border-color: var(--ink); }
+  .dym-clear:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
   .card .name { font-family: var(--serif); font-size: 16px; line-height: 1.2; }
   .card .name-link { color: inherit; text-decoration: none; }
   .card .name-link:hover { color: var(--pink-deep); text-decoration: underline; text-underline-offset: 2px; }
@@ -787,6 +799,7 @@ const CONDITIONS = [{ label: 'New', value: 'new' }, { label: 'Pre-owned', value:
 const DEFAULT_CONDITIONS = ['secondhand'];
 const selectedConditions = new Set(DEFAULT_CONDITIONS);
 let availOnly = true, nextCursor = null, likeSeed = null, loading = false;   // likeSeed = {id, title}
+let focusId = null, lastDidYouMean = null;   // "Did you mean" intent: focus a resolved catalog doll
 let infinite = true;               // auto-load next page on scroll; off → manual "Show more" (reaches footer)
 let sortMode = 'relevance';        // 'relevance' (UCP order) | 'price-asc' | 'price-desc'
 let allCards = [];                 // every card loaded for the current search (drives client-side sort)
@@ -1211,6 +1224,7 @@ function buildParams(cursor) {
   if (pmax) p.set('price_max', pmax);
   selectedConditions.forEach(c => p.append('condition', c));
   p.set('available', availOnly ? '1' : '0');
+  if (focusId && !likeSeed) p.set('focus', focusId);   // narrow to one resolved doll
   if (cursor) p.set('cursor', cursor);
   return p;
 }
@@ -1563,9 +1577,10 @@ async function fetchPage(cursor, append) {
     const shown = visibleCards().length;
     const total = data.total_count != null ? data.total_count : shown;
     lastTotal = total; updateSheetApply();          // label the mobile sheet's Apply button
-    count.innerHTML = (cards.length || append)
+    lastDidYouMean = (!append && data.did_you_mean) ? data.did_you_mean : lastDidYouMean;
+    count.innerHTML = (append ? '' : dymHTML(data)) + ((cards.length || append)
       ? `<b>${shown}</b> of ${total} ${NOUNS} ${LABEL_LOCATED}`
-      : MSG_NO_MATCH + rescueHTML();
+      : MSG_NO_MATCH + rescueHTML());
     showLoadMore();
   } finally {
     loading = false;
@@ -1578,6 +1593,29 @@ function scrollToResults() {
   const el = document.querySelector('.controls');
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+// "Did you mean" — resolve a loose query to one catalog doll, then narrow the listings
+// to genuine matches of that doll (drops gift sets, merch, and other-year reissues).
+function dymHTML(data) {
+  if (data.focused) {
+    const f = data.focused, yr = f.year ? ` (${esc(String(f.year))})` : '';
+    return `<div class="dym focused"><span>Showing only <b>${esc(f.label)}</b>${yr}</span>` +
+      `<button type="button" class="dym-clear" onclick="clearFocus()">show all matches</button></div>`;
+  }
+  if (data.did_you_mean) {
+    const d = data.did_you_mean, yr = d.year ? ` (${esc(String(d.year))})` : '';
+    return `<div class="dym"><span>Did you mean <b>${esc(d.label)}</b>${yr}?</span>` +
+      `<button type="button" class="dym-go" onclick="focusResolved()">Show exact matches</button></div>`;
+  }
+  return '';
+}
+function focusResolved() { if (lastDidYouMean) focusDoll(lastDidYouMean.id, lastDidYouMean.name); }
+function focusDoll(id, name) {
+  focusId = id;
+  const box = document.getElementById('q');
+  if (box) { box.value = name; stopPlaceholder(); document.getElementById('clearx').style.display = 'block'; }
+  closeSuggest(); exitLike(); exitWish(); syncURL(); fetchPage(null, false); scrollToResults();
+}
+function clearFocus() { focusId = null; syncURL(); fetchPage(null, false); }
 // ----- Shareable URL state: reflect query + chips + price + stock in the address bar -----
 function syncURL() {
   const p = new URLSearchParams();
@@ -1590,6 +1628,7 @@ function syncURL() {
   if (pmax) p.set('price_max', pmax);
   if (!availOnly) p.set('available', '0');
   if (sortMode !== 'relevance') p.set('sort', sortMode);
+  if (focusId) p.set('focus', focusId);
   const qs = p.toString();
   history.replaceState(null, '', qs ? '?' + qs : location.pathname);
 }
@@ -1620,10 +1659,12 @@ function restoreStateFromURL() {
     const sel = document.getElementById('sort');
     if (sel) sel.value = sort;
   }
+  const foc = p.get('focus');
+  if (foc) focusId = foc;              // shared focused-search URL
   updateBadges();
 }
 function refresh() { exitWish(); syncURL(); fetchPage(null, false); }          // filter change — stay put
-function runSearch() { closeSuggest(); exitLike(); exitWish(); syncURL(); fetchPage(null, false); scrollToResults(); }  // header search — jump down
+function runSearch() { focusId = null; closeSuggest(); exitLike(); exitWish(); syncURL(); fetchPage(null, false); scrollToResults(); }  // header search — new intent clears focus
 function loadMore() { if (nextCursor && !loading) fetchPage(nextCursor, true); }
 
 // Show the manual "Show more" button when auto-load is off (or no observer support)

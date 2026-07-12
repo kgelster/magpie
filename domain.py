@@ -150,7 +150,10 @@ MATCH_STOPWORDS = ("barbie", "mattel", "doll", "dolls", "the", "a", "an", "and",
 # describes (same merch classes as the POPULAR_QUERIES accuracy bar below).
 MATCH_NEGATIVE_TERMS = ("ornament", "figurine", "music box", "advertisement", "print ad",
                         "poster", "magazine", "costume", "funko", "mug", "keychain",
-                        "shirt", "plate", "pin", "sticker", "book")
+                        "shirt", "plate", "pin", "sticker", "book",
+                        # non-doll merchandise that carries a doll's name in the title
+                        "lanyard", "playset", "play set", "house", "furniture", "print",
+                        "puzzle", "tumbler", "backpack", "blanket", "lego", "pop!")
 
 # Merchant ban list: results from these sellers are hidden everywhere (search +
 # quick-view). Each entry is a lowercase substring matched against the seller's
