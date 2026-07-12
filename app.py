@@ -815,49 +815,136 @@ FOREIGN_CHARACTERS = frozenset(
     "chris pj steven curtis nikki teresa kira jamie whitney becky courtney".split())
 
 
-def _fuzzy_in(word, toks, cutoff=0.82):
-    """True if `word` is present in `toks` exactly OR as a close fuzzy match
-    (difflib ratio >= cutoff). This is the fuzzywuzzy-style tolerance -- built on
-    stdlib difflib to keep the image pip-free -- that lets a listing title's plural
-    or typo ("hairs", "totaly") still satisfy a required identity word without
-    loosening WHICH words must be present."""
-    if word in toks:
-        return True
-    return any(difflib.SequenceMatcher(None, word, t).ratio() >= cutoff for t in toks)
+# Tier cutoffs for the focused-view fallback ladder (see search()). These are
+# per-listing identity scores from _sig_score (0..1, a length-weighted fuzzy mean
+# of the focused doll's identity words). Calibrated against cached prod grab-bags
+# by tools/calibrate_focus.py — change them there, not by guessing.
+EXACT_CUTOFF = 0.82        # "exact" tier: essentially every identity word present
+CLOSE_CUTOFF = 0.55        # "close" fallback: a majority of identity words present
+MIN_KEEP = 3               # exact keepers below this drops the view to the close tier
+
+# Mattel edition-tier bigrams ("Gold Label", "Pink Label"...). These are a label
+# CLASS, not a doll's name, so a listing's "... Gold Label" must not let the word
+# "gold" satisfy a doll whose identity word happens to be "gold" (the Bob Mackie
+# "Gold Label" false positive). Stripped from title tokens before scoring.
+_LABEL_TIERS = frozenset("gold silver platinum pink black ruby emerald blush".split())
+
+# A difflib ratio below this earns a sig word ZERO credit. Short identity words
+# ("gold", "day") otherwise collect spurious partial credit from any unrelated
+# title token that shares two letters ("goddess", "chase"), which would inflate a
+# doll that's missing that word straight into the exact tier. The floor keeps only
+# real variants — a plural ("hairs"->"hair" ~0.89) or typo ("totaly"->"totally"
+# ~0.92) — and treats everything else as absent. Mirrors the old _fuzzy_in cutoff.
+_FUZZY_FLOOR = 0.80
 
 
-def _focus_keep(title, desc, rid):
-    """True if a listing genuinely IS the focused doll. Strict on purpose -- a
-    resolved 'show me X' should drop gift-set/merch/reissue noise:
-      - no merch term (lanyard, playset, ornament...) in the title;
-      - no FOREIGN character in the title that isn't part of the doll's own name;
-      - the doll's distinctive NAME words (letters only -- stock digits excluded) are
-        ALL present in the title, matched FUZZILY so a plural/typo doesn't drop a
-        genuine listing (but every identity word must still be there -- that's what
-        rejects a same-year, same-ethnicity but different doll);
-      - the release YEAR is in the title ONLY when the name is too generic to stand
-        alone. A single short identity word like "malibu" gets reused across years
-        and reissues, so there the year is the disambiguator; a distinctive multi-word
-        name ("totally hair") IS its own disambiguator, and demanding the year would
-        wrongly drop the many genuine listings that omit it."""
+def _strip_label_bigrams(toks):
+    """Drop '<tier> label' bigrams from an ordered token list (see _LABEL_TIERS)."""
+    out, i, n = [], 0, len(toks)
+    while i < n:
+        if i + 1 < n and toks[i] in _LABEL_TIERS and toks[i + 1] == "label":
+            i += 2
+            continue
+        out.append(toks[i])
+        i += 1
+    return out
+
+
+def _sig_score(r, title_toks, compact):
+    """0..1 fuzzy identity score of a listing against reference record r.
+
+    fuse.js-style, on stdlib. Per non-digit identity word, take the best of:
+      - exact token membership (1.0),
+      - max difflib ratio vs title tokens (catches plural/typo: "hairs", "totaly"),
+      - a substring hit inside the space-stripped title (0.9; catches compound
+        tokens like a title's "greatshape" for the word "great"/"shape").
+    Overall = length-weighted mean of the per-word bests, so longer, more
+    identifying words ("mackie") count more than filler ("of", "n"). `title_toks`
+    and `compact` are the label-bigram-stripped title as a token set and a
+    space-removed string, both precomputed by the caller."""
+    sig_words = [t for t in r["sig"] if not t.isdigit()]
+    if not sig_words:
+        return 0.0
+    num = den = 0.0
+    for w in sig_words:
+        if w in title_toks:
+            best = 1.0
+        else:
+            best = max((difflib.SequenceMatcher(None, w, t).ratio() for t in title_toks),
+                       default=0.0)
+            if best < _FUZZY_FLOOR:             # unrelated token, not a variant -> absent
+                best = 0.0
+            if len(w) >= 4 and w in compact:    # compound token ("greatshape") -> present
+                best = max(best, 0.9)
+        num += best * len(w)
+        den += len(w)
+    return num / den if den else 0.0
+
+
+def _focus_eval(title, desc, rid):
+    """Fuzzy identity score (0..1) of a listing for the focused doll, or None when a
+    HARD gate rejects it outright (never eligible for ANY tier):
+      - a merch term (lanyard, playset, ornament, styling head...) in the title;
+      - a FOREIGN character not part of the doll's own name (a Malibu Ken under a
+        "Malibu Barbie" focus);
+      - the conditional YEAR gate: a weak single-word signature ("malibu") gets
+        reused across years and reissues, so there the release year must be present
+        or a cross-year repro would score a perfect 1.0 and leak into every tier.
+    Distinctive multi-word names carry their own identity and skip the year gate.
+    Score-only; the tier thresholds (EXACT/CLOSE) are applied by the caller."""
     if not _MATCH or rid not in _MATCH["recs"]:
-        return True
+        return 1.0
     r = _MATCH["recs"][rid]
     tnorm = _match_norm(title)
     ttoks = set(tnorm.split())
     if any(f" {t} " in f" {tnorm} " for t in _MATCH["neg"]):
-        return False
+        return None
     name_toks = set(_match_tokens(r["name"]))
     if any(ct in ttoks and ct not in name_toks for ct in FOREIGN_CHARACTERS):
-        return False
+        return None
     sig_words = {t for t in r["sig"] if not t.isdigit()}
-    if not (sig_words and all(_fuzzy_in(s, ttoks) for s in sig_words)):
-        return False
-    # Year gate applies only to weak (single-word) signatures; distinctive names carry
-    # their own identity and shouldn't be filtered on a year sellers routinely omit.
-    if r["year"] and len(sig_words) < 2:
-        return r["year"] in ttoks
-    return True
+    if not sig_words:
+        return None
+    if r["year"] and len(sig_words) < 2 and r["year"] not in ttoks:
+        return None
+    stripped = _strip_label_bigrams(tnorm.split())
+    return _sig_score(r, set(stripped), "".join(stripped))
+
+
+def _focus_keep(title, desc, rid):
+    """True if a listing clears the hard gates AND scores at the EXACT tier. Thin
+    wrapper over _focus_eval — kept for callers/tests wanting the strict boolean."""
+    s = _focus_eval(title, desc, rid)
+    return s is not None and s >= EXACT_CUTOFF
+
+
+def _focus_ladder(cards, rid):
+    """Walk the fallback ladder over already-fetched cards for focused doll `rid`.
+    Returns (kept_cards, mode, exact_n):
+      - mode "exact": a healthy set of exact-tier matches (or a thin set with no
+        near-misses to pad — genuine hits are never relabeled "close");
+      - mode "close": too few exact AND real near-misses exist, so the view is
+        broadened to CLOSE_CUTOFF, ranked by identity score;
+      - mode "all": nothing even close — kept is None so the caller shows the
+        unfiltered grab-bag (an auto-focus never renders an empty page).
+    exact_n is the exact-tier count regardless of mode (lets the banner stay honest
+    when a close view still contains a couple of exact hits). Pure — no network —
+    so tools/calibrate_focus.py exercises the exact prod tiering on cached data."""
+    scored = []
+    for c in cards:
+        s = _focus_eval(c["title"], c.get("desc", ""), rid)
+        if s is not None:                       # None = hard-gate reject (merch/foreign/year)
+            scored.append((s, c))
+    scored.sort(key=lambda sc: sc[0], reverse=True)   # best identity match first
+    exact = [c for s, c in scored if s >= EXACT_CUTOFF]
+    close = [c for s, c in scored if s >= CLOSE_CUTOFF]   # superset of exact, score-ranked
+    # Broaden to close ONLY when exact is thin AND close actually adds near-misses;
+    # a thin-but-complete exact set (e.g. the only two genuine listings) stays exact.
+    if len(exact) >= MIN_KEEP or (exact and len(close) == len(exact)):
+        return exact, "exact", len(exact)
+    if close:
+        return close, "close", len(exact)
+    return None, "all", 0                       # nothing even close -> never render empty
 
 
 def resolve_query_intent(query):
@@ -1169,15 +1256,27 @@ def search(params):
             focus, auto = dym["id"], True          # narrow by default
     if focus:
         raw_total = result.get("total_count")
-        result["cards"] = [c for c in result["cards"]
-                           if _focus_keep(c["title"], c.get("desc", ""), focus)]
-        result["total_count"] = len(result["cards"])
-        result["next_cursor"] = None            # focused view is one curated page
-        if _MATCH and focus in _MATCH["recs"]:
-            result["focused"] = _intent(focus)
-            if auto:
-                result["focused"]["auto"] = True
-                result["focused"]["raw_total"] = raw_total
+        kept, mode, exact_n = _focus_ladder(result["cards"], focus)   # exact -> close -> all
+        if mode == "all":
+            # Focus resolved confidently to a doll with no in-stock listing even at
+            # the close tier: fall back to the unfiltered grab-bag in the exact
+            # shape a manual all=1 escape produces ("Showing all results for X" +
+            # re-narrow button), so an auto-focus never renders a blank page.
+            if _MATCH and focus in _MATCH["recs"]:
+                result["did_you_mean"] = _intent(focus)
+                result["show_all_active"] = True
+        else:
+            result["cards"] = kept
+            result["total_count"] = len(kept)
+            result["next_cursor"] = None        # focused view is one curated page
+            if _MATCH and focus in _MATCH["recs"]:
+                result["focused"] = _intent(focus)
+                result["focused"]["mode"] = mode
+                if mode == "close":
+                    result["focused"]["exact_n"] = exact_n   # honest banner copy
+                if auto:
+                    result["focused"]["auto"] = True
+                    result["focused"]["raw_total"] = raw_total
     else:
         dym = resolve_query_intent(orig_query)
         if dym:

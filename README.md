@@ -173,6 +173,38 @@ results, and each maps to a `domain.py` knob.
   item that shouldn't be identified as the item → `MATCH_NEGATIVE_TERMS`
   (suppresses the badge without dropping the listing).
 
+### Narrow to one doll (the fallback ladder)
+
+When a loose query confidently resolves to a single catalog record
+(`resolve_query_intent`), the default view auto-narrows to genuine listings of
+*that* doll — quality over quantity. The narrowing is a **scored fallback
+ladder**, not a boolean filter (`_focus_ladder` + `_sig_score` in `app.py`):
+
+- **Score, don't AND.** Each listing gets a 0–1 identity score: the
+  length-weighted mean of how well the doll's identity words match the title
+  (exact token, `difflib` fuzzy variant above `_FUZZY_FLOOR`, or a compound
+  substring hit). Longer, more identifying words count more; a difflib ratio
+  below the floor earns zero, so a short word like "gold" can't collect spurious
+  credit from an unrelated token. `<tier> label` bigrams (Gold/Pink Label…) are
+  stripped before scoring so Mattel's edition tiers don't masquerade as identity.
+- **Three tiers.** `EXACT_CUTOFF` (essentially every identity word present) is
+  the default view. Too few exact matches **and** real near-misses in stock →
+  broaden to `CLOSE_CUTOFF` (a majority of identity words), banner-labeled
+  "close matches". Nothing even close → show the unfiltered grab-bag with a
+  re-narrow escape. An auto-focused query never renders a blank page.
+- **Hard gates still bind at every tier.** Merch terms (`MATCH_NEGATIVE_TERMS`),
+  a foreign character not in the doll's own name (a Malibu *Ken*), and a
+  conditional year gate for weak single-word signatures ("malibu" gets reused
+  across years, so there the release year is required) reject a listing outright,
+  regardless of score.
+- **Calibrate before you deploy.** `tools/calibrate_focus.py` (dev-only, not in
+  the Docker image) pulls the real `?all=1` grab-bag for a battery of queries
+  from live prod, caches it, and runs the *actual* ladder over those cards so you
+  can eyeball kept/close/dropped per query. It hard-asserts the precision wins
+  (Totally Hair drops Ken/merch/styling-head; Malibu 1971 drops Ken and
+  cross-year reissues; no auto-focus query ends empty) and exits non-zero on a
+  regression. Tune the three cutoffs there, not by guessing.
+
 ### Measure, then cut
 
 - **Sweep chips against live results.** For each chip, score the fraction of

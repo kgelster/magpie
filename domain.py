@@ -153,7 +153,8 @@ MATCH_NEGATIVE_TERMS = ("ornament", "figurine", "music box", "advertisement", "p
                         "shirt", "plate", "pin", "sticker", "book",
                         # non-doll merchandise that carries a doll's name in the title
                         "lanyard", "playset", "play set", "house", "furniture", "print",
-                        "puzzle", "tumbler", "backpack", "blanket", "lego", "pop!")
+                        "puzzle", "tumbler", "backpack", "blanket", "lego", "pop!",
+                        "styling head")
 
 # Merchant ban list: results from these sellers are hidden everywhere (search +
 # quick-view). Each entry is a lowercase substring matched against the seller's

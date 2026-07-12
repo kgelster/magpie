@@ -1600,8 +1600,13 @@ function scrollToResults() {
 function dymHTML(data) {
   if (data.focused) {
     const f = data.focused, yr = f.year ? ` (${esc(String(f.year))})` : '';
+    const n = (f.raw_total != null) ? ' ' + f.raw_total : '';
+    if (f.mode === 'close') {   // too few exact in stock; showing the near-misses
+      const lead = f.exact_n ? 'Few exact matches for' : 'No exact matches for';
+      return `<div class="dym focused"><span>${lead} <b>${esc(f.label)}</b>${yr} — showing close matches</span>` +
+        `<button type="button" class="dym-clear" onclick="showAll()">show all${n} results</button></div>`;
+    }
     if (f.auto) {           // narrowed by default; offer the full grab-bag as the escape
-      const n = (f.raw_total != null) ? ' ' + f.raw_total : '';
       return `<div class="dym focused"><span>Showing exact matches for <b>${esc(f.label)}</b>${yr}</span>` +
         `<button type="button" class="dym-clear" onclick="showAll()">show all${n} results</button></div>`;
     }
