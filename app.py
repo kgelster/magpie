@@ -15,6 +15,7 @@ Search-only: result cards link out to each merchant's product / buy-now page.
 This app never builds carts or checkouts.
 """
 
+import difflib
 import html
 import json
 import os
@@ -82,8 +83,8 @@ _search_cache = OrderedDict()           # key -> (expiry_monotonic, payload); LR
 
 
 def _ucp_params(params):
-    # `focus` is a post-search result filter, not part of the UCP request.
-    return {k: v for k, v in params.items() if k != "focus"}
+    # `focus`/`all` are post-search result controls, not part of the UCP request.
+    return {k: v for k, v in params.items() if k not in ("focus", "all")}
 
 
 def _cache_key(params):
@@ -91,8 +92,11 @@ def _cache_key(params):
     # different order) share one entry. Pagination cursor is part of the input,
     # so each page caches separately. `focus` changes the filtered output, so it
     # keys separately.
+    # `all` (show the unfiltered grab-bag) changes post-filtering, not the UCP
+    # request, so it keys separately from the default auto-focused view.
     return json.dumps({"ucp": build_ucp_input(**_ucp_params(params)),
-                       "focus": params.get("focus")}, sort_keys=True)
+                       "focus": params.get("focus"),
+                       "all": bool(params.get("all"))}, sort_keys=True)
 
 
 def cache_get(key):
@@ -811,15 +815,31 @@ FOREIGN_CHARACTERS = frozenset(
     "chris pj steven curtis nikki teresa kira jamie whitney becky courtney".split())
 
 
+def _fuzzy_in(word, toks, cutoff=0.82):
+    """True if `word` is present in `toks` exactly OR as a close fuzzy match
+    (difflib ratio >= cutoff). This is the fuzzywuzzy-style tolerance -- built on
+    stdlib difflib to keep the image pip-free -- that lets a listing title's plural
+    or typo ("hairs", "totaly") still satisfy a required identity word without
+    loosening WHICH words must be present."""
+    if word in toks:
+        return True
+    return any(difflib.SequenceMatcher(None, word, t).ratio() >= cutoff for t in toks)
+
+
 def _focus_keep(title, desc, rid):
     """True if a listing genuinely IS the focused doll. Strict on purpose -- a
-    'Did you mean X -> show me X' click should drop gift-set/merch/reissue noise:
+    resolved 'show me X' should drop gift-set/merch/reissue noise:
       - no merch term (lanyard, playset, ornament...) in the title;
       - no FOREIGN character in the title that isn't part of the doll's own name;
       - the doll's distinctive NAME words (letters only -- stock digits excluded) are
-        all in the title;
-      - the doll's own release YEAR is in the title (stock numbers get reused across
-        years, so the year is the reliable disambiguator)."""
+        ALL present in the title, matched FUZZILY so a plural/typo doesn't drop a
+        genuine listing (but every identity word must still be there -- that's what
+        rejects a same-year, same-ethnicity but different doll);
+      - the release YEAR is in the title ONLY when the name is too generic to stand
+        alone. A single short identity word like "malibu" gets reused across years
+        and reissues, so there the year is the disambiguator; a distinctive multi-word
+        name ("totally hair") IS its own disambiguator, and demanding the year would
+        wrongly drop the many genuine listings that omit it."""
     if not _MATCH or rid not in _MATCH["recs"]:
         return True
     r = _MATCH["recs"][rid]
@@ -831,9 +851,13 @@ def _focus_keep(title, desc, rid):
     if any(ct in ttoks and ct not in name_toks for ct in FOREIGN_CHARACTERS):
         return False
     sig_words = {t for t in r["sig"] if not t.isdigit()}
-    if not (sig_words and sig_words <= ttoks):
+    if not (sig_words and all(_fuzzy_in(s, ttoks) for s in sig_words)):
         return False
-    return bool(r["year"]) and r["year"] in ttoks
+    # Year gate applies only to weak (single-word) signatures; distinctive names carry
+    # their own identity and shouldn't be filtered on a year sellers routinely omit.
+    if r["year"] and len(sig_words) < 2:
+        return r["year"] in ttoks
+    return True
 
 
 def resolve_query_intent(query):
@@ -1122,27 +1146,44 @@ def _note_unmatched(query, cards):
 def search(params):
     """Glue: params dict -> normalized payload or {error}.
 
-    Two accuracy affordances layer on top of the raw listing search:
-      - did_you_mean: when a loose query resolves to one specific catalog doll, offer it.
-      - focus: when the client asks to focus on a resolved doll, keep only listings that
-        genuinely ARE that doll (drops the gift-set/merch/reissue grab-bag)."""
+    Accuracy affordances layer on top of the raw listing search:
+      - AUTO-FOCUS: when a loose query confidently resolves to one catalog doll, the
+        default view is already narrowed to genuine matches of that doll -- quality
+        over quantity. A wrong first card (a same-year, same-ethnicity but DIFFERENT
+        doll UCP happened to rank first) never surfaces; an empty filtered set is the
+        honest answer, with a 'show all N results' escape.
+      - focus: an explicit client focus on a resolved doll (same filter, no escape).
+      - all=1: the visitor's escape from auto-focus -- return the unfiltered grab-bag
+        but still offer to re-narrow (show_all_active + did_you_mean)."""
     focus = params.get("focus")
+    show_all = bool(params.get("all"))
     orig_query = params.get("query")
     raw = run_ucp_search(build_ucp_input(**_ucp_params(params)))
     if isinstance(raw, dict) and raw.get("error"):
         return raw
     result = normalize(raw)
+    auto = False
+    if not focus and not show_all:
+        dym = resolve_query_intent(orig_query)
+        if dym:
+            focus, auto = dym["id"], True          # narrow by default
     if focus:
+        raw_total = result.get("total_count")
         result["cards"] = [c for c in result["cards"]
                            if _focus_keep(c["title"], c.get("desc", ""), focus)]
         result["total_count"] = len(result["cards"])
         result["next_cursor"] = None            # focused view is one curated page
         if _MATCH and focus in _MATCH["recs"]:
             result["focused"] = _intent(focus)
+            if auto:
+                result["focused"]["auto"] = True
+                result["focused"]["raw_total"] = raw_total
     else:
         dym = resolve_query_intent(orig_query)
         if dym:
             result["did_you_mean"] = dym
+            if show_all:
+                result["show_all_active"] = True   # escaped the auto-narrow; offer to re-narrow
     _note_unmatched(orig_query, result["cards"])
     return result
 
@@ -1230,6 +1271,7 @@ def _parse_search_query(qs):
         "cursor": (qs.get("cursor") or [None])[0] or None,
         "like": (qs.get("like") or [None])[0] or None,
         "focus": (qs.get("focus") or [None])[0] or None,
+        "all": (qs.get("all") or [None])[0] == "1",
     }
 
 

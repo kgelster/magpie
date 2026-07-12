@@ -800,6 +800,7 @@ const DEFAULT_CONDITIONS = ['secondhand'];
 const selectedConditions = new Set(DEFAULT_CONDITIONS);
 let availOnly = true, nextCursor = null, likeSeed = null, loading = false;   // likeSeed = {id, title}
 let focusId = null, lastDidYouMean = null;   // "Did you mean" intent: focus a resolved catalog doll
+let showAllResults = false;                  // escape from the default auto-narrow (server all=1)
 let infinite = true;               // auto-load next page on scroll; off → manual "Show more" (reaches footer)
 let sortMode = 'relevance';        // 'relevance' (UCP order) | 'price-asc' | 'price-desc'
 let allCards = [];                 // every card loaded for the current search (drives client-side sort)
@@ -1224,7 +1225,8 @@ function buildParams(cursor) {
   if (pmax) p.set('price_max', pmax);
   selectedConditions.forEach(c => p.append('condition', c));
   p.set('available', availOnly ? '1' : '0');
-  if (focusId && !likeSeed) p.set('focus', focusId);   // narrow to one resolved doll
+  if (focusId && !likeSeed) p.set('focus', focusId);        // explicit narrow to one resolved doll
+  else if (showAllResults && !likeSeed) p.set('all', '1');  // escape the default auto-narrow
   if (cursor) p.set('cursor', cursor);
   return p;
 }
@@ -1598,16 +1600,27 @@ function scrollToResults() {
 function dymHTML(data) {
   if (data.focused) {
     const f = data.focused, yr = f.year ? ` (${esc(String(f.year))})` : '';
+    if (f.auto) {           // narrowed by default; offer the full grab-bag as the escape
+      const n = (f.raw_total != null) ? ' ' + f.raw_total : '';
+      return `<div class="dym focused"><span>Showing exact matches for <b>${esc(f.label)}</b>${yr}</span>` +
+        `<button type="button" class="dym-clear" onclick="showAll()">show all${n} results</button></div>`;
+    }
     return `<div class="dym focused"><span>Showing only <b>${esc(f.label)}</b>${yr}</span>` +
       `<button type="button" class="dym-clear" onclick="clearFocus()">show all matches</button></div>`;
   }
   if (data.did_you_mean) {
     const d = data.did_you_mean, yr = d.year ? ` (${esc(String(d.year))})` : '';
+    if (data.show_all_active) {   // escaped the auto-narrow; offer to re-narrow
+      return `<div class="dym"><span>Showing all results for <b>${esc(d.label)}</b>${yr}</span>` +
+        `<button type="button" class="dym-go" onclick="showExact()">Show exact matches</button></div>`;
+    }
     return `<div class="dym"><span>Did you mean <b>${esc(d.label)}</b>${yr}?</span>` +
       `<button type="button" class="dym-go" onclick="focusResolved()">Show exact matches</button></div>`;
   }
   return '';
 }
+function showAll() { showAllResults = true; focusId = null; syncURL(); fetchPage(null, false); }
+function showExact() { showAllResults = false; focusId = null; syncURL(); fetchPage(null, false); }
 function focusResolved() { if (lastDidYouMean) focusDoll(lastDidYouMean.id, lastDidYouMean.name); }
 function focusDoll(id, name) {
   focusId = id;
@@ -1629,6 +1642,7 @@ function syncURL() {
   if (!availOnly) p.set('available', '0');
   if (sortMode !== 'relevance') p.set('sort', sortMode);
   if (focusId) p.set('focus', focusId);
+  else if (showAllResults) p.set('all', '1');
   const qs = p.toString();
   history.replaceState(null, '', qs ? '?' + qs : location.pathname);
 }
@@ -1661,10 +1675,11 @@ function restoreStateFromURL() {
   }
   const foc = p.get('focus');
   if (foc) focusId = foc;              // shared focused-search URL
+  else if (p.get('all') === '1') showAllResults = true;   // shared show-all URL
   updateBadges();
 }
 function refresh() { exitWish(); syncURL(); fetchPage(null, false); }          // filter change — stay put
-function runSearch() { focusId = null; closeSuggest(); exitLike(); exitWish(); syncURL(); fetchPage(null, false); scrollToResults(); }  // header search — new intent clears focus
+function runSearch() { focusId = null; showAllResults = false; closeSuggest(); exitLike(); exitWish(); syncURL(); fetchPage(null, false); scrollToResults(); }  // header search — new intent clears focus/escape
 function loadMore() { if (nextCursor && !loading) fetchPage(nextCursor, true); }
 
 // Show the manual "Show more" button when auto-load is off (or no observer support)
