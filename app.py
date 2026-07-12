@@ -176,13 +176,15 @@ def _build_sitemap():
     for slug in sorted(_PAGES):
         rows.append(f"  <url><loc>{domain.SITE_ORIGIN}/doll/{quote(slug)}</loc>"
                     f"<changefreq>weekly</changefreq><priority>0.8</priority></url>")
-    # Canonical reference-catalog deep-links. T3 crawl-budget gate: only enriched+
-    # records (those carrying real reference prose) emit ?q= deep-links; the breadth
-    # census (census/corroborated tier) and auto-created stubs stay out so thousands
-    # of thin search-landing pages can't dilute crawl focus away from the /doll/ pilot.
+    # Canonical reference-catalog deep-links. T3 crawl-budget gate: emit ?q= deep-links
+    # ONLY for records that have a routed /doll/ reference page (the pilot set). The full
+    # enriched catalog (~3,000 records) stays out of the sitemap so thousands of thin
+    # search-landing pages can't dilute crawl focus during T3; the sitemap's ?q= surface
+    # grows exactly as REFERENCE_PILOT_SLUGS grows. Matcher + on-site search still serve
+    # every record regardless.
     if _MATCH:
         for r in sorted(_MATCH["recs"].values(), key=lambda r: r["name"]):
-            if not r["name"] or r["name"] in seen or r["lifecycle"] in ("stub", "census", "corroborated"):
+            if not r["name"] or r["name"] in seen or r.get("slug") not in _PAGES:
                 continue
             seen.add(r["name"])
             loc = f"{domain.SITE_ORIGIN}/?q={quote(r['name'])}"
