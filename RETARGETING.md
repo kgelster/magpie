@@ -1,6 +1,6 @@
-# Retargeting Magpie to your hobby
+# Retargeting awesome-ucp-demo to your hobby
 
-Magpie ships configured as DollScout, a collector-Barbie finder. Everything
+`awesome-ucp-demo` ships configured as DollScout, a collector-Barbie finder. Everything
 Barbie-specific lives in two places: `domain.py` (all of it) and six fenced
 `BRAND BLOCK` regions in `index.html`. Work through this checklist in order and
 you'll have your own finder running in an afternoon.

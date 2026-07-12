@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Magpie — a hobby product finder built on the Shopify UCP global catalog.
+"""awesome-ucp-demo — a hobby product finder built on the Shopify UCP global catalog.
 
 This is the engine: HTTP server, caching, rate limiting, SEO, and the UCP
 subprocess glue. Everything hobby-specific (brand terms, taxonomy, copy)

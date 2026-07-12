@@ -1,16 +1,16 @@
-# Magpie
+# awesome-ucp-demo
 
 **Build a product finder for any hobby, on Shopify's Universal Commerce Protocol.**
 
-Magpie is a boilerplate for hobby product-search sites: one Python file of engine, one
-HTML file of UI, zero dependencies. It ships configured as
+`awesome-ucp-demo` is a boilerplate for hobby product-search sites: one Python file of
+engine, one HTML file of UI, zero dependencies. It ships configured as
 [**DollScout**](https://www.dollscout.com), a live collector-Barbie finder, so cloning
 this template gives you a complete working demo. Point it at your own obsession
 (vinyl, fountain pens, trading cards, diecast cars) by editing one config file: see
 [RETARGETING.md](RETARGETING.md).
 
-Like the bird, it hunts shiny things across the whole landscape and brings them back
-to one nest.
+It's exactly what the name says: a demo of how much you can build on UCP with almost
+nothing — no merchant auth, no API tokens, no dependencies.
 
 **Live demo:** [dollscout.com](https://www.dollscout.com)
 
@@ -38,7 +38,7 @@ for everyone. Built by [Kurt Elster](https://ethercycle.com), a Shopify partner,
 contribution to the community. A rising tide lifts all ships.
 
 The model is search-and-referral only. Result cards link out to each merchant's own
-product and buy-now pages. Magpie never builds carts, never takes payment, holds no
+product and buy-now pages. The demo never builds carts, never takes payment, holds no
 inventory.
 
 ## Sponsored results
@@ -129,7 +129,7 @@ Useful implementation details:
 
 The UCP global catalog is all-of-ecommerce with no niche awareness: ask it for
 "Ken doll" and it drifts into baby dolls; ask for "1980s" and it returns
-80th-anniversary product. Magpie gets collector-grade accuracy by **shaping the
+80th-anniversary product. The demo gets collector-grade accuracy by **shaping the
 query on the way out and filtering results on the way back** — neither layer
 alone is enough. Every tip below came from tuning DollScout against live
 results, and each maps to a `domain.py` knob.

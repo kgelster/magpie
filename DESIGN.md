@@ -8,7 +8,7 @@ Conflict order, always: accessibility > token consistency > aesthetics.
 
 ## Context and goals
 
-Applies to the DollScout deployment of Magpie (`index.html`, the `app.py` 404 page,
+Applies to the DollScout deployment of awesome-ucp-demo (`index.html`, the `app.py` 404 page,
 and the `/doll/` reference pages — see `DESIGN-REFERENCE-PAGES.md` for that surface).
 The 2026-07 retheme replaced the porcelain/gold/serif look. Implementation strategy:
 the new tokens are mapped onto the legacy CSS variable slots in `:root` (now in

@@ -1,4 +1,4 @@
-# Magpie — two runtimes in one image:
+# awesome-ucp-demo — two runtimes in one image:
 #   Node  → the `ucp` CLI (@shopify/ucp-cli) that app.py shells out to
 #   Python→ app.py itself (stdlib only, no pip)
 FROM node:22-slim
